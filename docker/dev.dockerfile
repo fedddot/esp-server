@@ -4,7 +4,7 @@ FROM gcc:9
 RUN apt-get update
 RUN apt-get install -y cmake git g++ gdb-multiarch
 RUN apt-get install -y bash-completion
-RUN apt-get install -y clang-tools
+RUN apt-get install -y clangd-9
 
 # esp-idf prereqs
 RUN apt-get install -y wget flex bison gperf python3 python3-pip python3-venv ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
@@ -26,9 +26,8 @@ ENV MCU_SERVER_PATH=/usr/app/deps/mcu_server
 # server sources should be mapped to this path during container run
 WORKDIR /usr/src/app
 
-RUN ln /usr/lib/llvm-11/bin/clang /usr/lib/llvm-11/bin/clangd
-ENV PATH=/bin:/usr/bin:/usr/lib/llvm-11/bin
 ENV SHELL=/bin/bash
+ENV PATH=${PATH}:/usr/lib/llvm-9/bin
 RUN echo -e "\"\e[A\": history-search-backward" >> /etc/skel/.bashrc
 RUN echo -e "\"\e[B\": history-search-forward" >> /etc/skel/.bashrc
 
