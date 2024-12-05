@@ -10,8 +10,12 @@ RUN apt-get install -y wget flex bison gperf python3 python3-pip python3-venv ni
 
 # get esp-idf
 WORKDIR /usr/app/deps
-RUN git clone -b v5.3.1 --recursive https://github.com/espressif/esp-idf.git esp
-RUN cd esp && ./install.sh esp32
+RUN git clone -b v5.3.1 https://github.com/espressif/esp-idf.git esp
+
+WORKDIR /usr/app/deps/esp
+RUN sh install.sh esp32
+RUN python3 -u tools/idf_tools.py install
+RUN sh export.sh
 
 # get mcu_server
 WORKDIR /usr/app/deps
