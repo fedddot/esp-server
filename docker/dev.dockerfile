@@ -4,6 +4,7 @@ FROM gcc:9
 RUN apt-get update
 RUN apt-get install -y cmake git g++ gdb-multiarch
 RUN apt-get install -y bash-completion
+RUN apt-get install -y clang-tools
 
 # esp-idf prereqs
 RUN apt-get install -y wget flex bison gperf python3 python3-pip python3-venv ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
