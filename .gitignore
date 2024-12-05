@@ -1,0 +1,16 @@
+*.*
+.vscode
+build
+!.gitignore
+!.github
+!*.dockerfile
+!*.json
+!*.c
+!*.cpp
+!*.h
+!*.hpp
+!CMakeLists.txt
+!*.cmake
+!*.dsl
+!*.yml
+!*.py
