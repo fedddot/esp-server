@@ -26,6 +26,10 @@ ENV MCU_SERVER_PATH=/usr/app/deps/mcu_server
 # server sources should be mapped to this path during container run
 WORKDIR /usr/src/app
 
+RUN ln /usr/lib/llvm-11/bin/clang /usr/lib/llvm-11/bin/clangd
+ENV PATH=/bin:/usr/bin:/usr/lib/llvm-11/bin
 ENV SHELL=/bin/bash
+RUN echo -e "\"\e[A\": history-search-backward" >> /etc/skel/.bashrc
+RUN echo -e "\"\e[B\": history-search-forward" >> /etc/skel/.bashrc
 
 CMD ["/bin/bash"]
