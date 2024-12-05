@@ -53,7 +53,7 @@ int main(void) {
 		instance.subscribe(
 			"test_subsc",
 			[&instance](const server::Request& req) {
-				instance.send(server::Response(server::Response::ResponseCode::OK, req.body()));
+				instance.send(server::Response(server::ResponseCode::OK, req.body()));
 			}
 		);
 

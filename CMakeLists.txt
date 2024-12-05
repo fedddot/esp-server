@@ -8,3 +8,4 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(ipc)
 add_subdirectory(platform)
+add_subdirectory($ENV{MCU_SERVER_PATH} ${CMAKE_BINARY_DIR}/mcu_server)
