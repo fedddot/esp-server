@@ -1,0 +1,19 @@
+{
+	"name": "espdev-container",
+	"image": "espdev:latest",
+	"privileged": true,
+	"runArgs": [ "--network=host", "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"llvm-vs-code-extensions.vscode-clangd",
+				"ms-azuretools.vscode-docker",
+				"mhutchie.git-graph",
+				"twxs.cmake",
+				"ms-vscode.cmake-tools",
+				"josetr.cmake-language-support-vscode",
+				"espressif.esp-idf-extension"
+			]
+		}
+	}
+}
