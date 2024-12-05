@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_executable(esp_mcu_server ${CMAKE_CURRENT_LIST_DIR}/src/esp_mcu_server.cpp)
+
 add_subdirectory(ipc)
 add_subdirectory(platform)
 add_subdirectory($ENV{MCU_SERVER_PATH} ${CMAKE_BINARY_DIR}/mcu_server)
