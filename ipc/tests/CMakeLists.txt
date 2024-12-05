@@ -1,0 +1,2 @@
+add_executable(esp_ipc_connection_tests ${CMAKE_CURRENT_LIST_DIR}/src/ut_esp_ipc_connection.cpp)
+target_link_libraries(esp_ipc_connection_tests PRIVATE esp_ipc_connection json_request_parser)
