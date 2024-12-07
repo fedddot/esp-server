@@ -18,5 +18,7 @@
 				"espressif.esp-idf-extension"
 			]
 		}
-	}
+	},
+	"workspaceMount": "source=${localWorkspaceFolder},target=/usr/app/src,type=bind",
+	"workspaceFolder": "/usr/app/src"
 }
