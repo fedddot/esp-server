@@ -21,8 +21,6 @@ ENV MCU_SERVER_PATH=${DEPS_SRC_DIR}/mcu_server
 
 ENV SHELL=/bin/bash
 ENV PATH=${PATH}:/usr/lib/llvm-13/bin
-RUN echo "\"\e[A\": history-search-backward" >> /etc/skel/.bashrc
-RUN echo "\"\e[B\": history-search-forward" >> /etc/skel/.bashrc
 
 RUN apt-get install -y locales
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
