@@ -23,7 +23,7 @@ ENV SHELL=/bin/bash
 ENV PATH=${PATH}:/usr/lib/llvm-13/bin
 RUN echo 'bind "\"\e[A\": history-search-backward"' >> /etc/skel/.bashrc
 RUN echo 'bind "\"\e[B\": history-search-forward"' >> /etc/skel/.bashrc
-RUN echo 'get_idf' >> /etc/skel/.bashrc
+RUN echo 'get_idf 1>/dev/null' >> /etc/skel/.bashrc
 RUN echo 'source /etc/skel/.bashrc' >> /root/.bashrc
 
 RUN apt-get install -y locales
