@@ -16,5 +16,7 @@ idf_build_process(
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(esp-server.elf ${CMAKE_CURRENT_LIST_DIR}/src/esp-server.cpp)
-target_link_libraries(esp-server.elf idf::freertos idf::spi_flash)
+target_link_libraries(esp-server.elf idf::freertos idf::spi_flash cnc_server test_ipc_connection)
 idf_build_executable(esp-server.elf)
+
+add_subdirectory($ENV{MCU_SERVER_PATH} ${CMAKE_BINARY_DIR}/mcu_server)
