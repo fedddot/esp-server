@@ -21,7 +21,7 @@ RUN git clone -b main https://github.com/fedddot/mcu_server.git mcu_server
 ENV MCU_SERVER_PATH=${DEPS_SRC_DIR}/mcu_server
 
 ENV SHELL=/bin/bash
-ENV PATH=${PATH}:/usr/lib/llvm-13/bin
+ENV PATH=${PATH}:/usr/lib/llvm-13/bin:/usr/bin
 RUN echo 'bind "\"\e[A\": history-search-backward"' >> /etc/skel/.bashrc
 RUN echo 'bind "\"\e[B\": history-search-forward"' >> /etc/skel/.bashrc
 RUN echo 'get_idf 1>/dev/null' >> /etc/skel/.bashrc
