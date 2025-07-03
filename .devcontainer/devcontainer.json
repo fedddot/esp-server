@@ -20,6 +20,6 @@
 			]
 		}
 	},
-	"workspaceMount": "source=${localWorkspaceFolder},target=/usr/app/src,type=bind",
-	"workspaceFolder": "/usr/app/src"
+	"workspaceMount": "source=${localWorkspaceFolder},target=/project,type=bind",
+	"workspaceFolder": "/project"
 }
