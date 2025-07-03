@@ -11,8 +11,8 @@ RUN apt-get install -y python3 python3-pip python3-venv
 
 RUN apt-get install -y flex bison gperf ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
 
-ENV ESP_IDF_PATH=/usr/app/esp-idf
-RUN git clone -b v5.3.2 --recursive https://github.com/espressif/esp-idf.git ${ESP_IDF_PATH}
-RUN cd ${ESP_IDF_PATH} && ./install.sh esp32 esp32s2
+ENV IDF_PATH=/usr/app/esp-idf
+RUN git clone -b v5.3.2 --recursive https://github.com/espressif/esp-idf.git ${IDF_PATH}
+RUN cd ${IDF_PATH} && ./install.sh esp32 esp32s2
 
-RUN echo "alias get_idf='. ${ESP_IDF_PATH}/export.sh'" >> /etc/skel/.bashrc
+RUN echo "alias get_idf='. ${IDF_PATH}/export.sh'" >> /etc/skel/.bashrc
