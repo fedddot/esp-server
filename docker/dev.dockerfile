@@ -1,4 +1,4 @@
-FROM esp-base:latest
+FROM espressif/idf:latest
 
 RUN apt-get update
 RUN apt-get install -y gcc g++ gdb-multiarch cmake
