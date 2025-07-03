@@ -3,7 +3,6 @@ FROM espressif/idf:latest
 RUN apt-get update
 RUN apt-get install -y gcc g++ gdb-multiarch cmake
 RUN apt-get install -y bash-completion
-RUN apt-get install -y clangd-13
 RUN apt-get install -y protobuf-compiler
 
 ENV MCU_SERVER_PATH=/usr/app/mcu_server
