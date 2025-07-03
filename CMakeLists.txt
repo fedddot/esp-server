@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(TARGET "esp32s2")
-set(CMAKE_TOOLCHAIN_FILE "$ENV{IDF_PATH}/tools/cmake/toolchain-${TARGET}.cmake")
+set(TARGET esp32s2)
+set(CMAKE_TOOLCHAIN_FILE $ENV{IDF_PATH}/tools/cmake/toolchain-${TARGET}.cmake)
 
 project(esp_mcu_server C CXX ASM)
 
