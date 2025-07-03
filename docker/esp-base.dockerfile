@@ -15,4 +15,4 @@ ENV ESP_IDF_PATH=/usr/app/esp-idf
 RUN git clone -b v5.3.2 --recursive https://github.com/espressif/esp-idf.git ${ESP_IDF_PATH}
 RUN cd ${ESP_IDF_PATH} && ./install.sh esp32 esp32s2
 
-RUN echo "alias get_idf='. ${DEPS_SRC_DIR}/esp-idf/export.sh'" >> /etc/skel/.bashrc
+RUN echo "alias get_idf='. ${ESP_IDF_PATH}/export.sh'" >> /etc/skel/.bashrc
