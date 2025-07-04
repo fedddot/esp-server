@@ -3,7 +3,11 @@ cmake_minimum_required(VERSION 3.20)
 set(TARGET esp32s2)
 set(CMAKE_TOOLCHAIN_FILE $ENV{IDF_PATH}/tools/cmake/toolchain-${TARGET}.cmake)
 
-project(esp_mcu_server C CXX ASM)
+project(esp_mcu_server C CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include($ENV{IDF_PATH}/tools/cmake/idf.cmake)
 
@@ -29,3 +33,12 @@ target_link_libraries(
     idf::esp_eth
 )
 idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
+
+add_library(http_server INTERFACE)
+target_include_directories(http_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    http_server
+    INTERFACE
+    idf::esp_http_server
+    idf::esp_wifi
+)
