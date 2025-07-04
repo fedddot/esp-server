@@ -1,7 +1,7 @@
 FROM espressif/idf:latest
 
 RUN apt-get update
-RUN apt-get install -y gcc g++ gdb-multiarch cmake
+RUN apt-get install -y gcc g++ gdb-multiarch cmake clangd
 RUN apt-get install -y bash-completion
 RUN apt-get install -y protobuf-compiler
 
