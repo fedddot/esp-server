@@ -11,7 +11,6 @@ RUN git clone -b main https://github.com/fedddot/mcu_server.git ${MCU_SERVER_PAT
 ENV SHELL=/bin/bash
 RUN echo 'bind "\"\e[A\": history-search-backward"' >> /etc/skel/.bashrc
 RUN echo 'bind "\"\e[B\": history-search-forward"' >> /etc/skel/.bashrc
-RUN echo 'get_idf 1>/dev/null' >> /etc/skel/.bashrc
 RUN echo 'source /etc/skel/.bashrc' >> /root/.bashrc
 
 RUN apt-get install -y locales
