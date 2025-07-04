@@ -25,12 +25,7 @@ add_executable(${CMAKE_PROJECT_NAME}.elf ${CMAKE_CURRENT_LIST_DIR}/src/esp-serve
 target_link_libraries(
     ${CMAKE_PROJECT_NAME}.elf
     PRIVATE
-    idf::esp-tls
-    idf::nvs_flash
-    idf::esp_netif
-    idf::esp_http_server
-    idf::esp_wifi
-    idf::esp_eth
+    http_server
 )
 idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
 
@@ -39,6 +34,10 @@ target_include_directories(http_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/inclu
 target_link_libraries(
     http_server
     INTERFACE
+    idf::esp-tls
+    idf::nvs_flash
+    idf::esp_netif
     idf::esp_http_server
     idf::esp_wifi
+    idf::esp_eth
 )

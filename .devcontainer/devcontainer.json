@@ -18,13 +18,8 @@
 				"zxh404.vscode-proto3"
 			],
 			"settings": {
-    			"idf.adapterTargetName": "esp32s2",
-    			"idf.port": "/dev/ttyACM0",
-				"clangd.arguments": ["--query-driver=/opt/esp/tools/xtensa-esp-elf/esp-15.1.0_20250607/xtensa-esp-elf/bin/xtensa-esp32s2-elf-gcc"],
-				"clangd.path": "/usr/bin/clangd",
-				"clangd.enableCodeCompletion": true,
-				"clangd.enableHover": true,
-				"clangd.enable": true
+				"clangd.path": "/usr/lib/llvm-20/bin/clangd",
+				"clangd.arguments": ["--query-driver=/opt/esp/tools/xtensa-esp-elf/esp-15.1.0_20250607/xtensa-esp-elf/bin/xtensa-esp32s2-elf-g++,/opt/esp/tools/xtensa-esp-elf/esp-15.1.0_20250607/xtensa-esp-elf/bin/xtensa-esp32s2-elf-gcc"]
 			}
 		}
 	},

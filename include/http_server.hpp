@@ -2,11 +2,14 @@
 #define HTTP_SERVER_HPP
 
 #include <string>
+#include <stdexcept>
 
 namespace mcu_server {
     class HttpServer {
     public:
-        HttpServer(const std::string& addr);
+        HttpServer(const std::string& addr) {
+            throw std::runtime_error("HttpServer is not implemented yet");
+        }
         HttpServer(const HttpServer&) = delete;
         HttpServer& operator=(const HttpServer&) = delete;
         virtual ~HttpServer() noexcept = default;
