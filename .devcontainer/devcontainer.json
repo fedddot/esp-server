@@ -10,7 +10,7 @@
 		"vscode": {
 			"extensions": [
 				"llvm-vs-code-extensions.vscode-clangd",
-				"ms-azuretools.vscode-docker",
+				"ms-azuretools.vscode-containers",
 				"mhutchie.git-graph",
 				"twxs.cmake",
 				"ms-vscode.cmake-tools",
