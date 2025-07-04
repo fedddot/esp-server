@@ -16,3 +16,4 @@ build
 !*.yml
 !*.py
 !*.sh
+!.clangd
