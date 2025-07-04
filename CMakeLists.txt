@@ -17,8 +17,15 @@ idf_build_process(
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(elf_file ${CMAKE_PROJECT_NAME}.elf)
-add_executable(${elf_file} ${CMAKE_CURRENT_LIST_DIR}/src/esp-server.cpp)
-
-target_link_libraries(${elf_file} idf::esp-tls idf::nvs_flash idf::esp_netif idf::esp_http_server idf::esp_wifi idf::esp_eth)
-idf_build_executable(${elf_file})
+add_executable(${CMAKE_PROJECT_NAME}.elf ${CMAKE_CURRENT_LIST_DIR}/src/esp-server.cpp)
+target_link_libraries(
+    ${CMAKE_PROJECT_NAME}.elf
+    PRIVATE
+    idf::esp-tls
+    idf::nvs_flash
+    idf::esp_netif
+    idf::esp_http_server
+    idf::esp_wifi
+    idf::esp_eth
+)
+idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
