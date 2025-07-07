@@ -29,10 +29,26 @@ namespace mcu_server {
         }
         HttpServer(const HttpServer&) = delete;
         HttpServer& operator=(const HttpServer&) = delete;
-        virtual ~HttpServer() noexcept = default;
+        virtual ~HttpServer() noexcept {
+            httpd_stop(m_server_handle);
+            m_server_handle = nullptr;
+        }
     private:
         httpd_handle_t m_server_handle;
-        static esp_err_t post_handler(httpd_req_t *request);
+        static esp_err_t post_handler(httpd_req_t *request) {
+            HttpServer* server = static_cast<HttpServer *>(request->user_ctx);
+            if (server == nullptr) {
+                return ESP_FAIL;
+            }
+            char buffer[256];
+            int ret = httpd_req_recv(request, buffer, sizeof(buffer));
+            if (ret <= 0) {
+                return ESP_FAIL;
+            }
+            buffer[ret] = '\0';
+            httpd_resp_send(request, "Data received", HTTPD_RESP_USE_STRLEN);
+            return ESP_OK;
+        }
     };
 } // namespace mcu_server
 
