@@ -26,6 +26,7 @@ target_link_libraries(
     ${CMAKE_PROJECT_NAME}.elf
     PRIVATE
     http_server
+    idf::esp_driver_gpio
 )
 idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
 

@@ -2,8 +2,10 @@
 #define HTTP_SERVER_HPP
 
 #include <stdexcept>
+#include <string>
 
 #include "esp_http_server.h"
+#include "esp_wifi_types_generic.h"
 #include "http_parser.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
@@ -30,16 +32,9 @@ namespace mcu_server {
             wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
             ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
-            wifi_config_t ap_config = {};
-            strcpy((char*)ap_config.ap.ssid, "ESP32-AP");
-            ap_config.ap.ssid_len = strlen("ESP32-AP");
-            strcpy((char*)ap_config.ap.password, "12345678");
-            ap_config.ap.max_connection = 4;
-            ap_config.ap.authmode = WIFI_AUTH_WPA_WPA2_PSK;
-            if (strlen("12345678") == 0) {
-                ap_config.ap.authmode = WIFI_AUTH_OPEN;
-            }
-
+            wifi_config_t ap_config = {
+                .ap = generate_ap_cfg()
+            };
             ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
             ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &ap_config));
             ESP_ERROR_CHECK(esp_wifi_start());
@@ -70,6 +65,7 @@ namespace mcu_server {
         }
     private:
         httpd_handle_t m_server_handle;
+
         static esp_err_t post_handler(httpd_req_t *request) {
             HttpServer* server = static_cast<HttpServer *>(request->user_ctx);
             if (server == nullptr) {
@@ -84,7 +80,36 @@ namespace mcu_server {
             httpd_resp_send(request, "Data received", HTTPD_RESP_USE_STRLEN);
             return ESP_OK;
         }
+        static wifi_ap_config_t generate_ap_cfg() {
+            return wifi_ap_config_t{
+                .ssid = "ESP32-AP",
+                .password = "esppass12341234",
+                .ssid_len = 8,
+                .channel = 0, // TODO: check it
+                .authmode = WIFI_AUTH_WPA2_PSK,
+                .ssid_hidden = 0,
+                .max_connection = 1,
+                .beacon_interval = 100,
+                .csa_count = 3,
+                .dtim_period = 1,
+                .pairwise_cipher = WIFI_CIPHER_TYPE_NONE,
+                .ftm_responder = false,
+                .pmf_cfg = wifi_pmf_config_t {
+                    .capable = false,
+                    .required = false
+                },
+                .sae_pwe_h2e = WPA3_SAE_PWE_UNSPECIFIED,
+                .transition_disable = 0,
+                .sae_ext = 0,
+                .bss_max_idle_cfg = wifi_bss_max_idle_config_t {
+                    .period = 0,
+                    .protected_keep_alive = false
+                },
+                .gtk_rekey_interval = 0
+            };
+        }
     };
+
 } // namespace mcu_server
 
 #endif // HTTP_SERVER_HPP
