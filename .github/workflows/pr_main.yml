@@ -25,4 +25,4 @@ jobs:
     - name: build app
       working-directory: ${{github.workspace}}
       run: |
-        docker run -i -v ${{github.workspace}}:/project esp-dev:latest cmake -B -S /project -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DNETWORK_SSID=TEST_SSID -DNETWORK_PASSWORD=TEST_PASSWORD
+        docker run -i -v ${{github.workspace}}:/project esp-dev:latest bash -c "cmake -B /project/build -S /project -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DNETWORK_SSID=TEST_SSID -DNETWORK_PASSWORD=TEST_PASSWORD && cmake --build /project/build --target esp_mcu_server.elf"
