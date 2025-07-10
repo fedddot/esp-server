@@ -30,15 +30,21 @@ target_link_libraries(
 )
 idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
 
+add_library(wifi_access_point_guard INTERFACE)
+target_include_directories(wifi_access_point_guard INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    wifi_access_point_guard
+    INTERFACE
+    idf::nvs_flash
+    idf::esp_netif
+    idf::esp_wifi
+)
+
 add_library(http_server INTERFACE)
 target_include_directories(http_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(
     http_server
     INTERFACE
-    idf::esp-tls
-    idf::nvs_flash
-    idf::esp_netif
+    wifi_access_point_guard
     idf::esp_http_server
-    idf::esp_wifi
-    idf::esp_eth
 )
