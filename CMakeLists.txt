@@ -73,3 +73,5 @@ target_link_libraries(
     wifi_station_guard
     idf::esp_http_server
 )
+
+add_subdirectory($ENV{MCU_SERVER_PATH} ${CMAKE_BINARY_DIR}/_deps/mcu_server-build)

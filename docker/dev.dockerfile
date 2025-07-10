@@ -25,4 +25,16 @@ RUN ${IDF_PATH}/tools/idf_tools.py install esp-clang
 ENV TARGET=esp32s2
 ENV CLANGD_FLAGS="--query-driver=/opt/esp/tools/xtensa-esp-elf/esp-15.1.0_20250607/xtensa-esp-elf/bin/xtensa-${TARGET}-elf-gcc,/opt/esp/tools/xtensa-esp-elf/esp-15.1.0_20250607/xtensa-esp-elf/bin/xtensa-${TARGET}-elf-g++"
 
+WORKDIR /usr/app/external/googletest
+RUN wget https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz
+ENV GOOGLE_TEST_ARCHIVE_PATH=/usr/app/external/googletest/v1.15.2.tar.gz
+
+WORKDIR /usr/app/external/jsoncpp
+RUN wget https://github.com/open-source-parsers/jsoncpp/archive/refs/tags/1.9.6.tar.gz
+ENV JSONCPP_ARCHIVE_PATH=/usr/app/external/jsoncpp/1.9.6.tar.gz
+
+WORKDIR /usr/app/external
+RUN git clone --branch=0.4.9 https://github.com/nanopb/nanopb.git nanopb
+ENV NANOPB_SRC_PATH=/usr/app/external/nanopb
+
 CMD ["/bin/bash"]
