@@ -3,7 +3,11 @@ cmake_minimum_required(VERSION 3.20)
 set(TARGET esp32s2)
 set(CMAKE_TOOLCHAIN_FILE $ENV{IDF_PATH}/tools/cmake/toolchain-${TARGET}.cmake)
 
-project(esp_mcu_server C CXX ASM)
+project(esp_mcu_server C CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include($ENV{IDF_PATH}/tools/cmake/idf.cmake)
 
@@ -17,8 +21,55 @@ idf_build_process(
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(elf_file ${CMAKE_PROJECT_NAME}.elf)
-add_executable(${elf_file} ${CMAKE_CURRENT_LIST_DIR}/src/esp-server.cpp)
+if(NOT DEFINED NETWORK_SSID)
+    message(FATAL_ERROR "NETWORK_SSID is not defined. Please pass it to the cmake command")
+endif()
 
-target_link_libraries(${elf_file} idf::esp-tls idf::nvs_flash idf::esp_netif idf::esp_http_server idf::esp_wifi idf::esp_eth)
-idf_build_executable(${elf_file})
+if(NOT DEFINED NETWORK_PASSWORD)
+    message(FATAL_ERROR "NETWORK_PASSWORD is not defined. Please pass it to the cmake command")
+endif()
+
+add_executable(${CMAKE_PROJECT_NAME}.elf ${CMAKE_CURRENT_LIST_DIR}/src/esp-server.cpp)
+target_link_libraries(
+    ${CMAKE_PROJECT_NAME}.elf
+    PRIVATE
+    http_server
+    idf::esp_driver_gpio
+)
+idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
+target_compile_definitions(
+    ${CMAKE_PROJECT_NAME}.elf
+    PRIVATE
+    NETWORK_SSID=\"${NETWORK_SSID}\"
+    NETWORK_PASSWORD=\"${NETWORK_PASSWORD}\"
+)
+
+add_library(wifi_access_point_guard INTERFACE)
+target_include_directories(wifi_access_point_guard INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    wifi_access_point_guard
+    INTERFACE
+    idf::nvs_flash
+    idf::esp_netif
+    idf::esp_wifi
+)
+
+add_library(wifi_station_guard INTERFACE)
+target_include_directories(wifi_station_guard INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    wifi_station_guard
+    INTERFACE
+    idf::nvs_flash
+    idf::esp_netif
+    idf::esp_wifi
+)
+
+add_library(http_server INTERFACE)
+target_include_directories(http_server INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    http_server
+    INTERFACE
+    wifi_access_point_guard
+    wifi_station_guard
+    idf::esp_http_server
+)
