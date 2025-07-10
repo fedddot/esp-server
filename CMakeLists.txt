@@ -33,8 +33,16 @@ add_executable(${CMAKE_PROJECT_NAME}.elf ${CMAKE_CURRENT_LIST_DIR}/src/esp-serve
 target_link_libraries(
     ${CMAKE_PROJECT_NAME}.elf
     PRIVATE
-    http_server
     idf::esp_driver_gpio
+    http_server
+    api_request_reader_builder
+    api_response_writer_builder
+    host
+    http_server
+    ipc_instance
+    vendor
+    vendor_instance
+    wifi_station_guard
 )
 idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
 target_compile_definitions(
