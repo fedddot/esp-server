@@ -3,12 +3,14 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "hal/gpio_types.h"
+#include "wifi_access_point_guard.hpp"
 
 using namespace mcu_server;
 
 extern "C" {
     void app_main(void) {
-        HttpServer server;
+        WifiAccessPointGuard ap_guard("ESP32-AP", "EspPassWord");
+        HttpServer server(ap_guard);
         gpio_config_t io_conf = {};
         io_conf.intr_type = GPIO_INTR_DISABLE;
         io_conf.mode = GPIO_MODE_OUTPUT;
