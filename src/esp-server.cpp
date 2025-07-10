@@ -3,14 +3,14 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "hal/gpio_types.h"
-#include "wifi_access_point_guard.hpp"
+#include "wifi_station_guard.hpp"
 
 using namespace mcu_server;
 
 extern "C" {
     void app_main(void) {
-        WifiAccessPointGuard ap_guard("ESP32-AP", "EspPassWord");
-        HttpServer server(ap_guard);
+        WifiStationGuard sta_guard("Idan", "25800852");
+        HttpServer server(sta_guard);
         gpio_config_t io_conf = {};
         io_conf.intr_type = GPIO_INTR_DISABLE;
         io_conf.mode = GPIO_MODE_OUTPUT;
@@ -19,11 +19,13 @@ extern "C" {
         io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
         gpio_config(&io_conf);
 
-        bool led_on = true;
+        int led_on_time = 100;
+        int led_off_time = 1900;
         while (true) {
-            gpio_set_level(GPIO_NUM_15, led_on);
-            led_on = !led_on;
-            vTaskDelay(pdMS_TO_TICKS(500)); // 500ms delay
+            gpio_set_level(GPIO_NUM_15, true);
+            vTaskDelay(pdMS_TO_TICKS(led_on_time));
+            gpio_set_level(GPIO_NUM_15, false);
+            vTaskDelay(pdMS_TO_TICKS(led_off_time));
         }
     }
 }
