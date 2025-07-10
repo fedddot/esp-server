@@ -4,13 +4,12 @@
 #include <stdexcept>
 
 #include "esp_http_server.h"
-
-#include "wifi_access_point_guard.hpp"
+#include "wifi_station_guard.hpp"
 
 namespace mcu_server {
     class HttpServer {
     public:
-        HttpServer(const WifiAccessPointGuard& ap_guard): m_ap_guard(ap_guard), m_server_handle(nullptr) {
+        HttpServer(const WifiStationGuard& sta_guard): m_sta_guard(sta_guard), m_server_handle(nullptr) {
             httpd_config_t config = HTTPD_DEFAULT_CONFIG();
             httpd_handle_t server = nullptr;
             httpd_uri_t post_handler {
@@ -33,7 +32,7 @@ namespace mcu_server {
             m_server_handle = nullptr;
         }
     private:
-        WifiAccessPointGuard m_ap_guard;
+        WifiStationGuard m_sta_guard;
         httpd_handle_t m_server_handle;
 
         static esp_err_t post_handler(httpd_req_t *request) {

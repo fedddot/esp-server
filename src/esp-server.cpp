@@ -1,29 +1,47 @@
-#include "http_server.hpp"
-#include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
+
+#include "driver/gpio.h"
 #include "freertos/task.h"
 #include "hal/gpio_types.h"
-#include "wifi_access_point_guard.hpp"
+
+#include "wifi_station_guard.hpp"
+#include "http_server.hpp"
+
+#ifndef NETWORK_SSID
+#  error "NETWORK_SSID must be defined"
+#endif
+
+#ifndef NETWORK_PASSWORD
+#  error "NETWORK_PASSWORD must be defined"
+#endif
 
 using namespace mcu_server;
 
+static void blink_loop();
+
 extern "C" {
     void app_main(void) {
-        WifiAccessPointGuard ap_guard("ESP32-AP", "EspPassWord");
-        HttpServer server(ap_guard);
-        gpio_config_t io_conf = {};
-        io_conf.intr_type = GPIO_INTR_DISABLE;
-        io_conf.mode = GPIO_MODE_OUTPUT;
-        io_conf.pin_bit_mask = (1ULL << GPIO_NUM_15);
-        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-        io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-        gpio_config(&io_conf);
+        WifiStationGuard sta_guard(NETWORK_SSID, NETWORK_PASSWORD);
+        HttpServer server(sta_guard);
+        blink_loop();
+    }
+}
 
-        bool led_on = true;
-        while (true) {
-            gpio_set_level(GPIO_NUM_15, led_on);
-            led_on = !led_on;
-            vTaskDelay(pdMS_TO_TICKS(500)); // 500ms delay
-        }
+inline void blink_loop() {
+    gpio_config_t io_conf = {};
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    io_conf.pin_bit_mask = (1ULL << GPIO_NUM_15);
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&io_conf);
+
+    int led_on_time = 100;
+    int led_off_time = 1900;
+    while (true) {
+        gpio_set_level(GPIO_NUM_15, true);
+        vTaskDelay(pdMS_TO_TICKS(led_on_time));
+        gpio_set_level(GPIO_NUM_15, false);
+        vTaskDelay(pdMS_TO_TICKS(led_off_time));
     }
 }
