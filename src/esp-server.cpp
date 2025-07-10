@@ -6,6 +6,7 @@
 
 #include "wifi_station_guard.hpp"
 #include "http_server.hpp"
+#include <vector>
 
 #ifndef NETWORK_SSID
 #  error "NETWORK_SSID must be defined"
@@ -22,7 +23,13 @@ static void blink_loop();
 extern "C" {
     void app_main(void) {
         WifiStationGuard sta_guard(NETWORK_SSID, NETWORK_PASSWORD);
-        HttpServer server(sta_guard);
+        HttpServer server(
+            sta_guard,
+            [](const auto& payload) {
+                const auto msg = std::string("received data: ") + std::string(payload.begin(), payload.end());
+                return std::vector<char>(msg.begin(), msg.end());
+            }
+        );
         blink_loop();
     }
 }
