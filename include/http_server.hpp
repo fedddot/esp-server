@@ -47,8 +47,8 @@ namespace mcu_server {
                 return ESP_FAIL;
             }
             buffer[ret] = '\0';
-            httpd_resp_send(request, "Data received", HTTPD_RESP_USE_STRLEN);
-            return ESP_OK;
+            const std::string msg(std::string("Data received: ") + std::string(buffer, ret));
+            return httpd_resp_send(request, msg.c_str(), msg.size() + 1UL);
         }
     };
 
