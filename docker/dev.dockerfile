@@ -31,10 +31,6 @@ WORKDIR /usr/app/external
 RUN git clone --branch=0.4.9 https://github.com/nanopb/nanopb.git nanopb
 ENV NANOPB_SRC_PATH=/usr/app/external/nanopb
 
-WORKDIR /usr/app/external/git_actions_runner
-RUN wget https://github.com/actions/runner/releases/download/v2.326.0/actions-runner-linux-x64-2.326.0.tar.gz
-RUN tar xf ./actions-runner-linux-x64-2.326.0.tar.gz
-
 RUN useradd -m -s /bin/bash developer
 RUN cp -f /root/.bashrc /home/developer/.bashrc
 
