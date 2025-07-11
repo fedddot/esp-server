@@ -29,6 +29,14 @@ if(NOT DEFINED NETWORK_PASSWORD)
     message(FATAL_ERROR "NETWORK_PASSWORD is not defined. Please pass it to the cmake command")
 endif()
 
+if(NOT DEFINED SERVICE_PORT)
+    set(SERVICE_PORT 5555)
+endif()
+
+if(NOT DEFINED SERVICE_ROUTE)
+    set(SERVICE_ROUTE "/test_route")
+endif()
+
 add_executable(${CMAKE_PROJECT_NAME}.elf ${CMAKE_CURRENT_LIST_DIR}/src/esp-server.cpp)
 target_link_libraries(
     ${CMAKE_PROJECT_NAME}.elf
@@ -50,6 +58,8 @@ target_compile_definitions(
     PRIVATE
     NETWORK_SSID=\"${NETWORK_SSID}\"
     NETWORK_PASSWORD=\"${NETWORK_PASSWORD}\"
+    SERVICE_PORT=${SERVICE_PORT}
+    SERVICE_ROUTE=\"${SERVICE_ROUTE}\"
 )
 
 add_library(wifi_access_point_guard INTERFACE)

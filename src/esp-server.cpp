@@ -25,6 +25,14 @@
 #  error "NETWORK_PASSWORD must be defined"
 #endif
 
+#ifndef SERVICE_PORT
+#  error "SERVICE_PORT must be defined"
+#endif
+
+#ifndef SERVICE_ROUTE
+#  error "SERVICE_ROUTE must be defined"
+#endif
+
 using namespace mcu_server;
 using namespace host;
 using namespace ipc;
@@ -120,7 +128,9 @@ extern "C" {
                 data_buff_ptr->assign(payload.begin(), payload.end());
                 host_ptr->run_once();
                 return std::vector<char>(data_buff_ptr->begin(), data_buff_ptr->end());
-            }
+            },
+            SERVICE_ROUTE,
+            SERVICE_PORT
         );
         blink_loop();
     }

@@ -1,9 +1,11 @@
 #ifndef HTTP_SERVER_HPP
 #define HTTP_SERVER_HPP
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "esp_err.h"
@@ -15,15 +17,21 @@ namespace mcu_server {
     class HttpServer {
     public:
         using RequestCallback = std::function<std::vector<char>(const std::vector<char>& payload)>;
-        HttpServer(const WifiStationGuard& sta_guard, const RequestCallback& callback): m_sta_guard(sta_guard), m_callback(callback), m_server_handle(nullptr) {
+        
+        HttpServer(
+            const WifiStationGuard& sta_guard,
+            const RequestCallback& callback,
+            const std::string& route,
+            const std::uint16_t port
+        ): m_sta_guard(sta_guard), m_callback(callback), m_server_handle(nullptr) {
             if (!m_callback) {
                 throw std::invalid_argument("invalid callback function received");
             }
             httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+            config.server_port = port;
             httpd_handle_t server = nullptr;
-            throw std::runtime_error("TODO: make the route configurable");
             httpd_uri_t post_handler {
-                .uri = "/post_route",
+                .uri = route.c_str(),
                 .method = HTTP_POST,
                 .handler = HttpServer::post_handler,
                 .user_ctx = this
