@@ -7,6 +7,10 @@ on:
 
 env:
   BUILD_TYPE: Debug
+  PROJECT_ROOT_PATH: /project
+  PROJECT_BUILD_PATH: /project/build
+  NETWORK_SSID: TEST_SSID
+  NETWORK_PASSWORD: TEST_PASSWORD
 
 jobs:
   build:
@@ -25,4 +29,4 @@ jobs:
     - name: build app
       working-directory: ${{github.workspace}}
       run: |
-        docker run -i -v ${{github.workspace}}:/project esp-dev:latest bash -c "cmake -B /project/build -S /project -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DNETWORK_SSID=TEST_SSID -DNETWORK_PASSWORD=TEST_PASSWORD && cmake --build /project/build --target esp_mcu_server.elf"
+        docker run -i -v ${{github.workspace}}:/project esp-dev:latest bash -c "cmake -B $PROJECT_BUILD_PATH -S $PROJECT_ROOT_PATH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DNETWORK_SSID=$NETWORK_SSID -DNETWORK_PASSWORD=$NETWORK_PASSWORD && cmake --build $PROJECT_BUILD_PATH --target esp_mcu_server.elf"
