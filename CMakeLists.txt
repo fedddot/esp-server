@@ -92,4 +92,5 @@ target_link_libraries(
     idf::esp_http_server
 )
 
+add_subdirectory(proto)
 add_subdirectory($ENV{MCU_SERVER_PATH} ${CMAKE_BINARY_DIR}/_deps/mcu_server-build)
