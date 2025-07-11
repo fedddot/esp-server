@@ -22,5 +22,6 @@
 		}
 	},
 	"workspaceMount": "source=${localWorkspaceFolder},target=/project,type=bind",
-	"workspaceFolder": "/project"
+	"workspaceFolder": "/project",
+	"remoteUser": "developer"
 }

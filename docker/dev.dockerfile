@@ -9,12 +9,6 @@ RUN apt-get install -y locales
 ENV MCU_SERVER_PATH=/usr/app/mcu_server
 RUN git clone -b main https://github.com/fedddot/mcu_server.git ${MCU_SERVER_PATH}
 
-ENV SHELL=/bin/bash
-RUN echo 'bind "\"\e[A\": history-search-backward"' >> /etc/skel/.bashrc
-RUN echo 'bind "\"\e[B\": history-search-forward"' >> /etc/skel/.bashrc
-RUN echo 'get_idf 1>/dev/null' >> /etc/skel/.bashrc
-RUN echo 'source /etc/skel/.bashrc' >> /root/.bashrc
-
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     dpkg-reconfigure --frontend=noninteractive locales && \
     update-locale LANG=en_US.UTF-8
@@ -37,4 +31,20 @@ WORKDIR /usr/app/external
 RUN git clone --branch=0.4.9 https://github.com/nanopb/nanopb.git nanopb
 ENV NANOPB_SRC_PATH=/usr/app/external/nanopb
 
-CMD ["/bin/bash"]
+WORKDIR /usr/app/external/git_actions_runner
+RUN wget https://github.com/actions/runner/releases/download/v2.326.0/actions-runner-linux-x64-2.326.0.tar.gz
+RUN tar xf ./actions-runner-linux-x64-2.326.0.tar.gz
+
+RUN useradd -m -s /bin/bash developer
+RUN cp -f /root/.bashrc /home/developer/.bashrc
+
+USER developer
+ENV SHELL=/bin/bash
+RUN echo 'bind "\"\e[A\": history-search-backward"' >> ${HOME}/.bashrc
+RUN echo 'bind "\"\e[B\": history-search-forward"' >> ${HOME}/.bashrc
+RUN echo 'get_idf 1>/dev/null' >> ${HOME}/.bashrc
+RUN echo 'source /etc/skel/.bashrc' >> ${HOME}/.bashrc
+
+WORKDIR /project
+
+ENTRYPOINT ["/bin/bash", "-c"]
