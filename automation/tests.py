@@ -45,7 +45,7 @@ if __name__ == "__main__":
     service_uri = "http://192.168.1.129:5555/test_route"
     temp_setup = 22.5  # example temperature setup
     time_resolution_ms = 1000  # example time resolution
-    response = send_stop_request(service_uri)
-    print("Received stop response:", response)
     response = send_start_request(service_uri, temp_setup, time_resolution_ms)
     print("Received start response:", response)
+    response = send_stop_request(service_uri)
+    print("Received stop response:", response)
