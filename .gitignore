@@ -21,3 +21,4 @@ build
 
 automation/venv/*
 !automation/venv/pyvenv.cfg
+!automation/requirements.txt
