@@ -1,14 +1,9 @@
 import requests
 from service_api_pb2 import ThermostatApiRequest, ThermostatApiResponse, RequestType, StatusCode
+from google.protobuf.json_format import MessageToDict
 
-def send_start_request(service_uri, temp_setup, time_resolution_ms):
-    # build ThermostatApiRequest protobuf message (see service_api.proto for reference) according to the provided parameters
-    request_msg = ThermostatApiRequest()
-    request_msg.request_type = RequestType.START
-    request_msg.set_temperature = temp_setup
-    request_msg.time_resolution_ms = time_resolution_ms
-
-    serialized = request_msg.SerializeToString()
+def run_request(service_uri: str, request: ThermostatApiRequest) -> ThermostatApiResponse:
+    serialized = request.SerializeToString()
     headers = {'Content-Type': 'text/plain'}
     response = requests.post(
         service_uri,
@@ -16,36 +11,52 @@ def send_start_request(service_uri, temp_setup, time_resolution_ms):
         headers=headers,
         timeout=10
     )
-
+    if response.status_code != 200:
+        raise Exception(f"Failed to send request, status code: {response.status_code}")
     response_msg = ThermostatApiResponse()
     response_msg.ParseFromString(response.content)
     return response_msg
 
-def send_stop_request(service_uri):
-    request_msg = ThermostatApiRequest()
-    request_msg.request_type = RequestType.STOP
-    request_msg.set_temperature = 0.0
-    request_msg.time_resolution_ms = 0
+def print_response(response: ThermostatApiResponse):
+    status_mapping = {
+        StatusCode.SUCCESS: "Success",
+        StatusCode.FAILURE: "Failure"
+    }
+    print(f"Status: {status_mapping.get(response.status, 'Unknown')}")
+    print(f"Message: {response.message}")
 
-    serialized = request_msg.SerializeToString()
-    headers = {'Content-Type': 'text/plain'}
-    response = requests.post(
-        service_uri,
-        data=serialized,
-        headers=headers,
-        timeout=10
-    )
+def print_request(request: ThermostatApiRequest):
+    request_type_mapping = {
+        RequestType.START: "Start",
+        RequestType.STOP: "Stop"
+    }
+    print(f"Request Type: {request_type_mapping.get(request.request_type, 'Unknown')}")
+    if request.set_temperature:
+        print(f"Set Temperature: {request.set_temperature}")
+    if request.time_resolution_ms:
+        print(f"Time Resolution (ms): {request.time_resolution_ms}")
 
-    response_msg = ThermostatApiResponse()
-    response_msg.ParseFromString(response.content)
-    return response_msg
-
-# test the function with service_uri=http://192.168.1.129:5555/test_route
 if __name__ == "__main__":
     service_uri = "http://192.168.1.129:5555/test_route"
     temp_setup = 22.5  # example temperature setup
     time_resolution_ms = 1000  # example time resolution
-    response = send_start_request(service_uri, temp_setup, time_resolution_ms)
-    print("Received start response:", response)
-    response = send_stop_request(service_uri)
-    print("Received stop response:", response)
+    
+    start_request = ThermostatApiRequest(
+        request_type=RequestType.START,
+        set_temperature=temp_setup,
+        time_resolution_ms=time_resolution_ms
+    )
+    print("Sending test request:")
+    print_request(start_request)
+    response = run_request(service_uri, start_request)
+    print("Received response:")
+    print_response(response)
+    
+    stop_request = ThermostatApiRequest(
+        request_type=RequestType.STOP
+    )
+    print("Sending test request:")
+    print_request(stop_request)
+    response = run_request(service_uri, stop_request)
+    print("Received response:")
+    print_response(response)
