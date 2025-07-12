@@ -61,6 +61,7 @@ target_link_libraries(
     vendor
     vendor_instance
     wifi_station_guard
+    esp_timer_scheduler
 )
 idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
 target_compile_definitions(
@@ -102,6 +103,16 @@ target_link_libraries(
     wifi_access_point_guard
     wifi_station_guard
     idf::esp_http_server
+)
+
+add_library(esp_timer_scheduler INTERFACE)
+target_include_directories(esp_timer_scheduler INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    esp_timer_scheduler
+    INTERFACE
+    idf::freertos
+    idf::esp_timer
+    timer_scheduler
 )
 
 add_subdirectory(proto)
