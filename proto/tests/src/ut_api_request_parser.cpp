@@ -3,8 +3,6 @@
 #include "pb_encode.h"
 
 #include "ipc_data.hpp"
-#include "linear_movement_request.hpp"
-#include "movement_manager_data.hpp"
 #include "api_request_parser.hpp"
 #include "service_api.pb.h"
 #include "movement_manager_vector.hpp"
