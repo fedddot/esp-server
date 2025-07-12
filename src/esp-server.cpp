@@ -1,3 +1,4 @@
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -211,8 +212,64 @@ public:
     EspTimerScheduler& operator=(const EspTimerScheduler&) = delete;
 
     manager::Instance<TaskGuard> schedule_task(const Task& task, const std::size_t period_ms) override {
-        throw std::runtime_error("EspTimerScheduler is not implemented yet");
+        if (m_running_task.has_value()) {
+            throw std::runtime_error("a task is already running, unschedule it first");
+        }
+        if (task == nullptr || period_ms == 0) {
+            throw std::invalid_argument("task cannot be null and period must be greater than zero");
+        }
+        TaskHandle_t task_handle = nullptr;
+        m_running_task = task;
+        const auto task_create_result = xTaskCreate(
+            &EspTimerScheduler::task_callback,
+            "ScheduledTask",
+            2048,
+            this,
+            tskIDLE_PRIORITY + 1,
+            &task_handle
+        );
+        if (pdPASS != task_create_result) {
+            m_running_task.reset();
+            throw std::runtime_error("failed to create scheduled task");
+        }
+        return manager::Instance<TaskGuard>(new EspTaskGuard(task_handle));
     }
+private:
+    std::optional<Task> m_running_task;
+    static void task_callback(void *arg) {
+        auto scheduler = static_cast<EspTimerScheduler *>(arg);
+        if (!scheduler) {
+            throw std::runtime_error("timer callback invoked with nullptr scheduler");
+        }
+        if (!scheduler->m_running_task.has_value()) {
+            throw std::runtime_error("timer callback invoked with no running task");
+        }
+        const auto& task = scheduler->m_running_task.value();
+        task();
+    };
+    class EspTaskGuard: public TaskGuard {
+    public:
+        EspTaskGuard(TaskHandle_t task_handle): m_task_handle(task_handle) {
+            if (m_task_handle == nullptr) {
+                throw std::invalid_argument("invalid task handle received");
+            }
+        }
+        EspTaskGuard(const EspTaskGuard&) = delete;
+        EspTaskGuard& operator=(const EspTaskGuard&) = delete;
+
+        ~EspTaskGuard() noexcept override {
+            unschedule();
+        }
+
+        void unschedule() override {
+            if (m_task_handle != nullptr) {
+                vTaskDelete(m_task_handle);
+                m_task_handle = nullptr;
+            }
+        }
+    private:
+        TaskHandle_t m_task_handle;
+    };
 };
 
 inline ThermostatVendor::ThermostatManagerInstance create_thermostat_manager_instance() {
