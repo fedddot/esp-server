@@ -17,8 +17,7 @@
 				"josetr.cmake-language-support-vscode",
 				"zxh404.vscode-proto3",
 				"Postman.postman-for-vscode",
-				"GitHub.vscode-github-actions",
-				"whizkydee.material-palenight-theme"
+				"GitHub.vscode-github-actions"
 			]
 		}
 	},
