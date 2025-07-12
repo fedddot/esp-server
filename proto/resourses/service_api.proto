@@ -2,6 +2,10 @@ syntax = "proto3";
 
 package service_api;
 
+service ThermostatService {
+	rpc ControlThermostat(ThermostatApiRequest) returns (ThermostatApiResponse);
+}
+
 message ThermostatApiRequest {
 	RequestType request_type = 1;
 	float set_temperature = 2;
