@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "freertos/FreeRTOS.h"
+#include "freertos/timers.h" // Added for FreeRTOS timer support
 
 #include "driver/gpio.h"
 #include "freertos/task.h"
@@ -218,57 +219,70 @@ public:
         if (task == nullptr || period_ms == 0) {
             throw std::invalid_argument("task cannot be null and period must be greater than zero");
         }
-        TaskHandle_t task_handle = nullptr;
         m_running_task = task;
-        const auto task_create_result = xTaskCreate(
-            &EspTimerScheduler::task_callback,
-            "ScheduledTask",
-            2048,
+
+        TimerHandle_t timer_handle = xTimerCreate(
+            "ScheduledTimer",
+            pdMS_TO_TICKS(period_ms),
+            pdTRUE, // auto-reload for periodic
             this,
-            tskIDLE_PRIORITY + 1,
-            &task_handle
+            &EspTimerScheduler::timer_callback
         );
-        if (pdPASS != task_create_result) {
+        if (timer_handle == nullptr) {
             m_running_task.reset();
-            throw std::runtime_error("failed to create scheduled task");
+            throw std::runtime_error("failed to create scheduled timer");
         }
-        return manager::Instance<TaskGuard>(new EspTaskGuard(task_handle));
+        if (xTimerStart(timer_handle, 0) != pdPASS) {
+            xTimerDelete(timer_handle, 0);
+            m_running_task.reset();
+            throw std::runtime_error("failed to start scheduled timer");
+        }
+        return manager::Instance<TaskGuard>(new EspTimerGuard(timer_handle, this));
     }
 private:
     std::optional<Task> m_running_task;
-    static void task_callback(void *arg) {
-        auto scheduler = static_cast<EspTimerScheduler *>(arg);
+
+    static void timer_callback(TimerHandle_t xTimer) {
+        auto scheduler = static_cast<EspTimerScheduler *>(pvTimerGetTimerID(xTimer));
         if (!scheduler) {
-            throw std::runtime_error("timer callback invoked with nullptr scheduler");
+            // Can't throw in ISR context, so just return
+            return;
         }
         if (!scheduler->m_running_task.has_value()) {
-            throw std::runtime_error("timer callback invoked with no running task");
+            return;
         }
         const auto& task = scheduler->m_running_task.value();
         task();
-    };
-    class EspTaskGuard: public TaskGuard {
+    }
+
+    class EspTimerGuard: public TaskGuard {
     public:
-        EspTaskGuard(TaskHandle_t task_handle): m_task_handle(task_handle) {
-            if (m_task_handle == nullptr) {
-                throw std::invalid_argument("invalid task handle received");
+        EspTimerGuard(TimerHandle_t timer_handle, EspTimerScheduler* scheduler)
+            : m_timer_handle(timer_handle), m_scheduler(scheduler) {
+            if (m_timer_handle == nullptr) {
+                throw std::invalid_argument("invalid timer handle received");
             }
         }
-        EspTaskGuard(const EspTaskGuard&) = delete;
-        EspTaskGuard& operator=(const EspTaskGuard&) = delete;
+        EspTimerGuard(const EspTimerGuard&) = delete;
+        EspTimerGuard& operator=(const EspTimerGuard&) = delete;
 
-        ~EspTaskGuard() noexcept override {
+        ~EspTimerGuard() noexcept override {
             unschedule();
         }
 
         void unschedule() override {
-            if (m_task_handle != nullptr) {
-                vTaskDelete(m_task_handle);
-                m_task_handle = nullptr;
+            if (m_timer_handle != nullptr) {
+                xTimerStop(m_timer_handle, 0);
+                xTimerDelete(m_timer_handle, 0);
+                m_timer_handle = nullptr;
+                if (m_scheduler) {
+                    m_scheduler->m_running_task.reset();
+                }
             }
         }
     private:
-        TaskHandle_t m_task_handle;
+        TimerHandle_t m_timer_handle;
+        EspTimerScheduler* m_scheduler;
     };
 };
 
