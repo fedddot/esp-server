@@ -62,6 +62,7 @@ target_link_libraries(
     vendor_instance
     wifi_station_guard
     esp_timer_scheduler
+    pt100_sensor_controller
 )
 idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
 target_compile_definitions(
@@ -113,6 +114,15 @@ target_link_libraries(
     idf::freertos
     idf::esp_timer
     timer_scheduler
+)
+
+add_library(pt100_sensor_controller INTERFACE)
+target_include_directories(pt100_sensor_controller INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    pt100_sensor_controller
+    INTERFACE
+    idf::esp_driver_gpio
+    temperature_sensor_controller
 )
 
 add_subdirectory(proto)
