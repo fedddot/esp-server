@@ -8,7 +8,7 @@
 #include "pb_encode.h"
 
 #include "ipc_data.hpp"
-#include "service_api_response.hpp"
+#include "thermostat_api_response.hpp"
 #include "service_api.pb.h"
 
 namespace ipc {
@@ -19,14 +19,14 @@ namespace ipc {
         ApiResponseSerializer& operator=(const ApiResponseSerializer&) = default;
         virtual ~ApiResponseSerializer() noexcept = default;
 
-        RawData operator()(const vendor::MovementVendorApiResponse& response) const;
+        RawData operator()(const vendor::ThermostatVendorApiResponse& response) const;
     private:
         static bool encode_string(pb_ostream_t *stream, const pb_field_t *field, void * const *arg);
     };
 
-    inline RawData ApiResponseSerializer::operator()(const vendor::MovementVendorApiResponse& response) const {
+    inline RawData ApiResponseSerializer::operator()(const vendor::ThermostatVendorApiResponse& response) const {
         using namespace vendor;
-        using VendorStatus = vendor::MovementVendorApiResponse::Result;
+        using VendorStatus = vendor::ThermostatVendorApiResponse::Result;
         const auto status_mapping = std::map<VendorStatus, service_api_StatusCode> {
             { VendorStatus::SUCCESS, service_api_StatusCode_SUCCESS },
             { VendorStatus::FAILURE, service_api_StatusCode_FAILURE },
@@ -50,7 +50,7 @@ namespace ipc {
             BUFF_SIZE
         );
         if (!pb_encode(&ostream, service_api_MovementApiResponse_fields, &pb_response)) {
-            throw std::runtime_error("failed to encode MovementVendorApiResponse into protocol buffer: " + std::string(PB_GET_ERROR(&ostream)));
+            throw std::runtime_error("failed to encode ThermostatVendorApiResponse into protocol buffer: " + std::string(PB_GET_ERROR(&ostream)));
         }
         return RawData((const char *)buffer, (const char *)buffer + ostream.bytes_written);
     }
