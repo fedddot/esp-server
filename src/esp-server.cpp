@@ -13,9 +13,13 @@
 #include "host.hpp"
 #include "http_server.hpp"
 #include "ipc_instance.hpp"
+#include "thermostat_api_request.hpp"
+#include "thermostat_api_response.hpp"
 #include "vendor.hpp"
 #include "vendor_instance.hpp"
 #include "wifi_station_guard.hpp"
+#include "thermostat_manager.hpp"
+#include "thermostat_vendor.hpp"
 
 #ifndef NETWORK_SSID
 #  error "NETWORK_SSID must be defined"
@@ -38,10 +42,9 @@ using namespace host;
 using namespace ipc;
 using namespace vendor;
 
-using AxesConfig = std::string;
 using RawData = std::vector<char>;
-using ApiRequest = std::string;
-using ApiResponse = std::string;
+using ApiRequest = ThermostatVendorApiRequest;
+using ApiResponse = ThermostatVendorApiResponse;
 
 class RawDataReader : public IpcDataReader<RawData> {
 public:
@@ -76,17 +79,6 @@ private:
     RawData *m_raw_data;
 };
 
-class SimpleVendor: public Vendor<ApiRequest, ApiResponse> {
-public:
-    SimpleVendor() = default;
-    SimpleVendor(const SimpleVendor&) = delete;
-    SimpleVendor& operator=(const SimpleVendor&) = delete;
-    ApiResponse run_api_request(const ApiRequest& request) override {
-        const auto msg = std::string("received request: ") + request;
-        return ApiResponse(msg.begin(), msg.end());
-    }
-};
-
 static void blink_loop();
 
 extern "C" {
@@ -96,7 +88,7 @@ extern "C" {
         reader_builder
             .set_api_request_parser(
                 [](const RawData& raw_data) -> ipc::Instance<ApiRequest> {
-                    return ipc::Instance<ApiRequest>(new ApiRequest(raw_data.begin(), raw_data.end()));
+                    throw std::runtime_error("not implemented yet");
                 }
             )
             .set_raw_data_reader(ipc::Instance<IpcDataReader<RawData>>(new RawDataReader(&data_buffer)));
@@ -105,17 +97,17 @@ extern "C" {
         writer_builder
             .set_raw_data_writer(ipc::Instance<IpcDataWriter<RawData>>(new RawDataWriter(&data_buffer)))
             .set_api_response_serializer(
-                [](const ApiResponse& response) {
-                    return RawData(response.begin(), response.end());
+                [](const ApiResponse& response)-> RawData {
+                    throw std::runtime_error("not implemented yet");
                 }
             );
         const auto api_writer = writer_builder.build();
         Host<ApiRequest, ApiResponse> host(
             api_reader,
             api_writer,
-            vendor::Instance<Vendor<ApiRequest, ApiResponse>>(new SimpleVendor()),
-            [](const auto& e) {
-                return ApiResponse(std::string("error in host: ") + std::string(e.what()));
+            vendor::Instance<Vendor<ApiRequest, ApiResponse>>(nullptr), // TODO
+            [](const auto& e) -> ApiResponse {
+                throw std::runtime_error("not implemented yet");
             }
         );
 

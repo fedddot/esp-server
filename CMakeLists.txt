@@ -50,6 +50,8 @@ target_link_libraries(
     ipc_instance
     vendor
     vendor_instance
+    thermostat_vendor
+    thermostat_manager
     wifi_station_guard
 )
 idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
