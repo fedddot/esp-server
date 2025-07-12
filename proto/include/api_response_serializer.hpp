@@ -33,7 +33,7 @@ namespace ipc {
         };
         const auto pb_status = status_mapping.at(response.result());
         const auto pb_msg = response.message() ? response.message().value() : std::string("");
-        const auto pb_response = service_api_MovementApiResponse {
+        const auto pb_response = service_api_ThermostatApiResponse {
             .status = pb_status,
             .message = pb_callback_t {
                 .funcs = {
@@ -49,7 +49,7 @@ namespace ipc {
             buffer,
             BUFF_SIZE
         );
-        if (!pb_encode(&ostream, service_api_MovementApiResponse_fields, &pb_response)) {
+        if (!pb_encode(&ostream, service_api_ThermostatApiResponse_fields, &pb_response)) {
             throw std::runtime_error("failed to encode ThermostatVendorApiResponse into protocol buffer: " + std::string(PB_GET_ERROR(&ostream)));
         }
         return RawData((const char *)buffer, (const char *)buffer + ostream.bytes_written);

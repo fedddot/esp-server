@@ -5,21 +5,21 @@
 #include "ipc_data.hpp"
 #include "api_request_parser.hpp"
 #include "service_api.pb.h"
-#include "movement_manager_vector.hpp"
+#include "thermostat_api_request.hpp"
 
 using namespace ipc;
 using namespace vendor;
-using namespace manager;
 
-static RawData serialize_linear_movement_request(const LinearMovementRequest& request);
+static RawData serialize_thermostat_request(const ThermostatVendorApiRequest& request);
 
 TEST(ut_api_request_parser, sanity) {
 	// GIVEN
-	const auto request = LinearMovementRequest(
-		Vector<double>(1.0, 2.0, 3.0),
-		4.0
+	const auto request = ThermostatVendorApiRequest(
+		ThermostatVendorApiRequest::RequestType::START,
+		25.0,
+		1000
 	);
-	const auto raw_data = serialize_linear_movement_request(request);
+	const auto raw_data = serialize_thermostat_request(request);
 	
 	// WHEN
 	const auto instance = ApiRequestParser();
@@ -27,33 +27,35 @@ TEST(ut_api_request_parser, sanity) {
 	// THEN
 	ASSERT_NO_THROW({
 		const auto result = instance(raw_data);
-		const auto& casted_result = dynamic_cast<const LinearMovementRequest&>(result.get());
-		ASSERT_EQ(casted_result.speed(), request.speed());
+		ASSERT_EQ(result.get().type(), request.type());
+		ASSERT_EQ(result.get().temperature(), request.temperature());
+		ASSERT_EQ(result.get().time_resolution_ms(), request.time_resolution_ms());
 	});
 }
 
-inline RawData serialize_linear_movement_request(const LinearMovementRequest& request) {
-	const auto pb_target = service_api_Vector {
-		.x = static_cast<float>(request.destination().get(Axis::X)),
-		.y = static_cast<float>(request.destination().get(Axis::Y)),
-		.z = static_cast<float>(request.destination().get(Axis::Z)),
+inline RawData serialize_thermostat_request(const ThermostatVendorApiRequest& request) {
+	const auto request_type_mapping = std::map<ThermostatVendorApiRequest::RequestType, service_api_RequestType> {
+		{ ThermostatVendorApiRequest::RequestType::START, service_api_RequestType_START },
+		{ ThermostatVendorApiRequest::RequestType::STOP, service_api_RequestType_STOP },
 	};
-	const auto pb_linear_request = service_api_LinearMovementRequest {
-		.speed = static_cast<float>(request.speed()),
-		.has_target = true,
-		.target = pb_target,
-	};
-	const auto pb_request = service_api_MovementApiRequest {
-		.which_request = service_api_MovementApiRequest_linear_movement_request_tag,
-		.request = {
-			.linear_movement_request = pb_linear_request,
-		},
+	auto casted_temp = float(0.0);
+	if (request.temperature()) {
+		casted_temp = static_cast<float>(request.temperature().value());
+	}
+	auto casted_time_resolution = std::size_t(0);
+	if (request.time_resolution_ms()) {
+		casted_time_resolution = request.time_resolution_ms().value();
+	}
+	const auto pb_request = service_api_ThermostatApiRequest {
+		.request_type = request_type_mapping.at(request.type()),
+		.set_temperature = casted_temp,
+		.time_resolution_ms = casted_time_resolution,
 	};
 
 	pb_byte_t buffer[256];
 	auto ostream = pb_ostream_from_buffer(buffer, sizeof(buffer));
-	if (!pb_encode(&ostream, service_api_MovementApiRequest_fields, &pb_request)) {
-		throw std::runtime_error("Failed to encode LinearMovementRequest to raw data");
+	if (!pb_encode(&ostream, service_api_ThermostatApiRequest_fields, &pb_request)) {
+		throw std::runtime_error("Failed to encode ThermostatVendorApiRequest to raw data");
 	}
 	return RawData((const char *)buffer, (const char *)(buffer + ostream.bytes_written));
 }

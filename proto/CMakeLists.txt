@@ -34,11 +34,12 @@ target_include_directories(api_request_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR
 target_link_libraries(
 	api_request_parser
 	INTERFACE
-    pb_decode
-    ipc_data
-    ipc_instance
-    service_api
-    thermostat_api_request
+	ipc_data
+	ipc_instance
+	pb_common
+	pb_decode
+	service_api
+	thermostat_api_request
 )
 
 add_library(api_response_serializer INTERFACE)
@@ -46,10 +47,11 @@ target_include_directories(api_response_serializer INTERFACE ${CMAKE_CURRENT_LIS
 target_link_libraries(
 	api_response_serializer
 	INTERFACE
-    thermostat_api_response
-    service_api
-	pb_encode
+	ipc_data
 	pb_common
+	pb_encode
+	service_api
+	thermostat_api_response
 )
 
 add_subdirectory(tests EXCLUDE_FROM_ALL)
