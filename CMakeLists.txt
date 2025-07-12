@@ -63,6 +63,7 @@ target_link_libraries(
     wifi_station_guard
     esp_timer_scheduler
     pt100_sensor_controller
+    gpio_relay_controller
 )
 idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
 target_compile_definitions(
@@ -123,6 +124,15 @@ target_link_libraries(
     INTERFACE
     idf::esp_driver_gpio
     temperature_sensor_controller
+)
+
+add_library(gpio_relay_controller INTERFACE)
+target_include_directories(gpio_relay_controller INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(
+    gpio_relay_controller
+    INTERFACE
+    idf::esp_driver_gpio
+    relay_controller
 )
 
 add_subdirectory(proto)

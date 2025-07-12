@@ -30,6 +30,7 @@
 #include "vendor_instance.hpp"
 #include "wifi_station_guard.hpp"
 
+#include "gpio_relay_controller.hpp"
 #include "pt100_sensor_controller.hpp"
 
 #ifndef NETWORK_SSID
@@ -166,29 +167,8 @@ inline void blink_loop() {
     }
 }
 
-class GpioRelayController: public RelayController {
-public:
-    GpioRelayController(const gpio_num_t& gpio_pin): m_gpio_pin(gpio_pin) {
-        gpio_config_t io_conf = {};
-        io_conf.intr_type = GPIO_INTR_DISABLE;
-        io_conf.mode = GPIO_MODE_OUTPUT;
-        io_conf.pin_bit_mask = (1ULL << m_gpio_pin);
-        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-        io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-        ESP_ERROR_CHECK(gpio_config(&io_conf));
-    }
-    GpioRelayController(const GpioRelayController&) = delete;
-    GpioRelayController& operator=(const GpioRelayController&) = delete;
-
-    void set_relay_state(const bool state) override {
-        ESP_ERROR_CHECK(gpio_set_level(m_gpio_pin, state));
-    }
-private:
-    gpio_num_t m_gpio_pin;
-};
-
 inline ThermostatVendor::ThermostatManagerInstance create_thermostat_manager_instance() {
-    const auto relay_controller = manager::Instance<RelayController>(new GpioRelayController(RELAY_GPIO_PIN));
+    const auto relay_controller = manager::Instance<RelayController>(new esp::GpioRelayController(RELAY_GPIO_PIN));
     const auto temp_sensor_controller = manager::Instance<TemperatureSensorController>(new esp::Pt100SensorController(TEMP_SENSOR_GPIO_PIN));
     const auto timer_scheduler = manager::Instance<TimerScheduler>(new esp::EspTimerScheduler());
     return ThermostatVendor::ThermostatManagerInstance(
