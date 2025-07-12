@@ -34,10 +34,6 @@ ENV NANOPB_SRC_PATH=/usr/app/external/nanopb
 ENV IDF_PYTHON_ENV_PATH=${IDF_TOOLS_PATH}/python_env/idf6.0_py3.12_env
 RUN bash --init-file ${IDF_PYTHON_ENV_PATH}/bin/activate -c "${IDF_PYTHON_ENV_PATH}/bin/pip install protobuf grpcio-tools"
 
-RUN useradd -m -s /bin/bash developer
-RUN cp -f /root/.bashrc /home/developer/.bashrc
-
-USER developer
 ENV SHELL=/bin/bash
 RUN echo 'bind "\"\e[A\": history-search-backward"' >> ${HOME}/.bashrc
 RUN echo 'bind "\"\e[B\": history-search-forward"' >> ${HOME}/.bashrc
