@@ -36,6 +36,7 @@ target_link_libraries(
 	INTERFACE
     thermostat_api_request
     ipc_instance
+	ipc_data
     service_api
 	pb_decode
 	pb_common
