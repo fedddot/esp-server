@@ -1,6 +1,7 @@
 #ifndef API_REQUEST_PARSER_HPP
 #define API_REQUEST_PARSER_HPP
 
+#include <optional>
 #include <stdexcept>
 
 #include "pb_decode.h"
@@ -19,7 +20,6 @@ namespace ipc {
         virtual ~ApiRequestParser() noexcept = default;
 
         Instance<vendor::ThermostatVendorApiRequest> operator()(const RawData& raw_data) const;
-    private:
     };
 
     inline Instance<vendor::ThermostatVendorApiRequest> ApiRequestParser::operator()(const RawData& raw_data) const {
@@ -27,17 +27,29 @@ namespace ipc {
             (const pb_byte_t *)raw_data.data(),
             raw_data.size()
         );
-        service_api_MovementApiRequest decoded_request = service_api_MovementApiRequest_init_default;
-	    if (!pb_decode(&istream, service_api_MovementApiRequest_fields, &decoded_request)) {
-            throw std::runtime_error("Failed to decode MovementApiRequest from raw data: " + std::string(PB_GET_ERROR(&istream)));
+        service_api_ThermostatApiRequest decoded_request = service_api_ThermostatApiRequest_init_default;
+	    if (!pb_decode(&istream, service_api_ThermostatApiRequest_fields, &decoded_request)) {
+            throw std::runtime_error("Failed to decode ThermostatApiRequest from raw data: " + std::string(PB_GET_ERROR(&istream)));
         }
-        switch (decoded_request.which_request) {
-        case service_api_MovementApiRequest_config_request_tag:
-            throw std::runtime_error("Config request parsing not implemented yet");
-        case service_api_MovementApiRequest_linear_movement_request_tag:
-            throw std::runtime_error("Config request parsing not implemented yet");
+        switch (decoded_request.request_type) {
+        case service_api_RequestType_STOP:
+            return Instance<vendor::ThermostatVendorApiRequest>(
+                new vendor::ThermostatVendorApiRequest(
+                    vendor::ThermostatVendorApiRequest::RequestType::STOP,
+                    std::nullopt,
+                    std::nullopt
+                )
+            );
+        case service_api_RequestType_START:
+            return Instance<vendor::ThermostatVendorApiRequest>(
+                new vendor::ThermostatVendorApiRequest(
+                    vendor::ThermostatVendorApiRequest::RequestType::START,
+                    decoded_request.set_temperature,
+                    decoded_request.time_resolution_ms
+                )
+            );
         default:
-            throw std::runtime_error("unsupported request type in MovementApiRequest");
+            throw std::runtime_error("unsupported request type in ThermostatApiRequest");
         }
     }
 }

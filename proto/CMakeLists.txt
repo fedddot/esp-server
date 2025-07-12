@@ -34,12 +34,11 @@ target_include_directories(api_request_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR
 target_link_libraries(
 	api_request_parser
 	INTERFACE
-    thermostat_api_request
+    pb_decode
+    ipc_data
     ipc_instance
-	ipc_data
     service_api
-	pb_decode
-	pb_common
+    thermostat_api_request
 )
 
 add_library(api_response_serializer INTERFACE)
