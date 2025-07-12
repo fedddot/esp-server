@@ -8,18 +8,24 @@
 #include "freertos/task.h"
 #include "hal/gpio_types.h"
 
+#include "api_request_parser.hpp"
 #include "api_request_reader_builder.hpp"
+#include "api_response_serializer.hpp"
 #include "api_response_writer_builder.hpp"
 #include "host.hpp"
 #include "http_server.hpp"
 #include "ipc_instance.hpp"
+#include "manager_instance.hpp"
+#include "relay_controller.hpp"
+#include "temperature_sensor_controller.hpp"
 #include "thermostat_api_request.hpp"
 #include "thermostat_api_response.hpp"
+#include "thermostat_manager.hpp"
+#include "thermostat_vendor.hpp"
+#include "timer_scheduler.hpp"
 #include "vendor.hpp"
 #include "vendor_instance.hpp"
 #include "wifi_station_guard.hpp"
-#include "thermostat_manager.hpp"
-#include "thermostat_vendor.hpp"
 
 #ifndef NETWORK_SSID
 #  error "NETWORK_SSID must be defined"
@@ -37,10 +43,19 @@
 #  error "SERVICE_ROUTE must be defined"
 #endif
 
+#ifndef RELAY_GPIO_PIN
+#  error "RELAY_GPIO_PIN must be defined"
+#endif
+
+#ifndef TEMP_SENSOR_GPIO_PIN
+#  error "TEMP_SENSOR_GPIO_PIN must be defined"
+#endif
+
 using namespace mcu_server;
 using namespace host;
 using namespace ipc;
 using namespace vendor;
+using namespace manager;
 
 using RawData = std::vector<char>;
 using ApiRequest = ThermostatVendorApiRequest;
@@ -80,34 +95,33 @@ private:
 };
 
 static void blink_loop();
+static ThermostatVendor::ThermostatManagerInstance create_thermostat_manager_instance();
 
 extern "C" {
     void app_main(void) {
         auto data_buffer = RawData();
         ApiRequestReaderBuilder<ApiRequest, RawData> reader_builder;
         reader_builder
-            .set_api_request_parser(
-                [](const RawData& raw_data) -> ipc::Instance<ApiRequest> {
-                    throw std::runtime_error("not implemented yet");
-                }
-            )
+            .set_api_request_parser(ApiRequestParser())
             .set_raw_data_reader(ipc::Instance<IpcDataReader<RawData>>(new RawDataReader(&data_buffer)));
         const auto api_reader = reader_builder.build();
         ApiResponseWriterBuilder<ApiResponse, RawData> writer_builder;
         writer_builder
             .set_raw_data_writer(ipc::Instance<IpcDataWriter<RawData>>(new RawDataWriter(&data_buffer)))
-            .set_api_response_serializer(
-                [](const ApiResponse& response)-> RawData {
-                    throw std::runtime_error("not implemented yet");
-                }
-            );
+            .set_api_response_serializer(ApiResponseSerializer());
         const auto api_writer = writer_builder.build();
+
+        const auto thermostat_manager = create_thermostat_manager_instance();
+        const auto thermostat_vendor = vendor::Instance<Vendor<ApiRequest, ApiResponse>>(new ThermostatVendor(thermostat_manager));
         Host<ApiRequest, ApiResponse> host(
             api_reader,
             api_writer,
-            vendor::Instance<Vendor<ApiRequest, ApiResponse>>(nullptr), // TODO
+            thermostat_vendor,
             [](const auto& e) -> ApiResponse {
-                throw std::runtime_error("not implemented yet");
+                return ApiResponse(
+                    ApiResponse::Result::FAILURE,
+                    "unexpected error: " + std::string(e.what())
+                );
             }
         );
 
@@ -145,4 +159,71 @@ inline void blink_loop() {
         gpio_set_level(GPIO_NUM_15, false);
         vTaskDelay(pdMS_TO_TICKS(led_off_time));
     }
+}
+
+class GpioRelayController: public RelayController {
+public:
+    GpioRelayController(const gpio_num_t& gpio_pin): m_gpio_pin(gpio_pin) {
+        gpio_config_t io_conf = {};
+        io_conf.intr_type = GPIO_INTR_DISABLE;
+        io_conf.mode = GPIO_MODE_OUTPUT;
+        io_conf.pin_bit_mask = (1ULL << m_gpio_pin);
+        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+        ESP_ERROR_CHECK(gpio_config(&io_conf));
+    }
+    GpioRelayController(const GpioRelayController&) = delete;
+    GpioRelayController& operator=(const GpioRelayController&) = delete;
+
+    void set_relay_state(const bool state) override {
+        ESP_ERROR_CHECK(gpio_set_level(m_gpio_pin, state));
+    }
+private:
+    gpio_num_t m_gpio_pin;
+};
+
+class Pt100SensorController: public TemperatureSensorController {
+public:
+    Pt100SensorController(const gpio_num_t& gpio_pin): m_gpio_pin(gpio_pin) {
+        gpio_config_t io_conf = {};
+        io_conf.intr_type = GPIO_INTR_DISABLE;
+        io_conf.mode = GPIO_MODE_INPUT;
+        io_conf.pin_bit_mask = (1ULL << m_gpio_pin);
+        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+        ESP_ERROR_CHECK(gpio_config(&io_conf));
+    }
+    Pt100SensorController(const Pt100SensorController&) = delete;
+    Pt100SensorController& operator=(const Pt100SensorController&) = delete;
+
+    double read_temperature() const override {
+        // Placeholder for actual temperature reading logic
+        return 25.0; // Return a dummy temperature value
+    }
+private:
+    gpio_num_t m_gpio_pin;
+};
+
+class EspTimerScheduler: public TimerScheduler {
+public:
+    EspTimerScheduler() = default;
+    EspTimerScheduler(const EspTimerScheduler&) = delete;
+    EspTimerScheduler& operator=(const EspTimerScheduler&) = delete;
+
+    manager::Instance<TaskGuard> schedule_task(const Task& task, const std::size_t period_ms) override {
+        throw std::runtime_error("EspTimerScheduler is not implemented yet");
+    }
+};
+
+inline ThermostatVendor::ThermostatManagerInstance create_thermostat_manager_instance() {
+    const auto relay_controller = manager::Instance<RelayController>(new GpioRelayController(RELAY_GPIO_PIN));
+    const auto temp_sensor_controller = manager::Instance<TemperatureSensorController>(new Pt100SensorController(TEMP_SENSOR_GPIO_PIN));
+    const auto timer_scheduler = manager::Instance<TimerScheduler>(new EspTimerScheduler());
+    return ThermostatVendor::ThermostatManagerInstance(
+        new ThermostatManager(
+            relay_controller,
+            temp_sensor_controller,
+            timer_scheduler
+        )
+    );
 }

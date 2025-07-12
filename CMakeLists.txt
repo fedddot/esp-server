@@ -42,16 +42,24 @@ target_link_libraries(
     ${CMAKE_PROJECT_NAME}.elf
     PRIVATE
     idf::esp_driver_gpio
-    http_server
+
+    api_request_parser
     api_request_reader_builder
+    api_response_serializer
     api_response_writer_builder
     host
     http_server
     ipc_instance
+    manager_instance
+    relay_controller
+    temperature_sensor_controller
+    thermostat_api_request
+    thermostat_api_response
+    thermostat_manager
+    thermostat_vendor
+    timer_scheduler
     vendor
     vendor_instance
-    thermostat_vendor
-    thermostat_manager
     wifi_station_guard
 )
 idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
@@ -62,6 +70,8 @@ target_compile_definitions(
     NETWORK_PASSWORD=\"${NETWORK_PASSWORD}\"
     SERVICE_PORT=${SERVICE_PORT}
     SERVICE_ROUTE=\"${SERVICE_ROUTE}\"
+    RELAY_GPIO_PIN=GPIO_NUM_15
+    TEMP_SENSOR_GPIO_PIN=GPIO_NUM_4
 )
 
 add_library(wifi_access_point_guard INTERFACE)
