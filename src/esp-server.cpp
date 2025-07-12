@@ -224,7 +224,7 @@ public:
         TimerHandle_t timer_handle = xTimerCreate(
             "ScheduledTimer",
             pdMS_TO_TICKS(period_ms),
-            pdTRUE, // auto-reload for periodic
+            pdTRUE,
             this,
             &EspTimerScheduler::timer_callback
         );
@@ -259,8 +259,8 @@ private:
     public:
         EspTimerGuard(TimerHandle_t timer_handle, EspTimerScheduler* scheduler)
             : m_timer_handle(timer_handle), m_scheduler(scheduler) {
-            if (m_timer_handle == nullptr) {
-                throw std::invalid_argument("invalid timer handle received");
+            if (m_timer_handle == nullptr || m_scheduler == nullptr) {
+                throw std::invalid_argument("invalid timer handle or scheduler ptr received");
             }
         }
         EspTimerGuard(const EspTimerGuard&) = delete;
@@ -271,14 +271,12 @@ private:
         }
 
         void unschedule() override {
-            if (m_timer_handle != nullptr) {
+            if (m_timer_handle) {
                 xTimerStop(m_timer_handle, 0);
                 xTimerDelete(m_timer_handle, 0);
                 m_timer_handle = nullptr;
-                if (m_scheduler) {
-                    m_scheduler->m_running_task.reset();
-                }
             }
+            m_scheduler->m_running_task.reset();
         }
     private:
         TimerHandle_t m_timer_handle;
