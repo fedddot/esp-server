@@ -30,6 +30,8 @@
 #include "vendor_instance.hpp"
 #include "wifi_station_guard.hpp"
 
+#include "pt100_sensor_controller.hpp"
+
 #ifndef NETWORK_SSID
 #  error "NETWORK_SSID must be defined"
 #endif
@@ -185,31 +187,9 @@ private:
     gpio_num_t m_gpio_pin;
 };
 
-class Pt100SensorController: public TemperatureSensorController {
-public:
-    Pt100SensorController(const gpio_num_t& gpio_pin): m_gpio_pin(gpio_pin) {
-        gpio_config_t io_conf = {};
-        io_conf.intr_type = GPIO_INTR_DISABLE;
-        io_conf.mode = GPIO_MODE_INPUT;
-        io_conf.pin_bit_mask = (1ULL << m_gpio_pin);
-        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-        io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-        ESP_ERROR_CHECK(gpio_config(&io_conf));
-    }
-    Pt100SensorController(const Pt100SensorController&) = delete;
-    Pt100SensorController& operator=(const Pt100SensorController&) = delete;
-
-    double read_temperature() const override {
-        // Placeholder for actual temperature reading logic
-        return 25.0; // Return a dummy temperature value
-    }
-private:
-    gpio_num_t m_gpio_pin;
-};
-
 inline ThermostatVendor::ThermostatManagerInstance create_thermostat_manager_instance() {
     const auto relay_controller = manager::Instance<RelayController>(new GpioRelayController(RELAY_GPIO_PIN));
-    const auto temp_sensor_controller = manager::Instance<TemperatureSensorController>(new Pt100SensorController(TEMP_SENSOR_GPIO_PIN));
+    const auto temp_sensor_controller = manager::Instance<TemperatureSensorController>(new esp::Pt100SensorController(TEMP_SENSOR_GPIO_PIN));
     const auto timer_scheduler = manager::Instance<TimerScheduler>(new esp::EspTimerScheduler());
     return ThermostatVendor::ThermostatManagerInstance(
         new ThermostatManager(
