@@ -5,16 +5,10 @@
 
 #include "pb_decode.h"
 
-#include "axes_controller_config_request.hpp"
-#include "axis_config.hpp"
 #include "ipc_data.hpp"
 #include "ipc_instance.hpp"
-#include "linear_movement_request.hpp"
-#include "movement_manager_data.hpp"
 #include "service_api.pb.h"
-#include "service_api_request.hpp"
-#include "pico_axis_controller_config.hpp"
-#include "rotation_movement_request.hpp"
+#include "thermostat_api_request.hpp"
 
 namespace ipc {
     class ApiRequestParser {
@@ -24,16 +18,11 @@ namespace ipc {
         ApiRequestParser& operator=(const ApiRequestParser&) = default;
         virtual ~ApiRequestParser() noexcept = default;
 
-        Instance<vendor::MovementVendorApiRequest> operator()(const RawData& raw_data) const;
+        Instance<vendor::ThermostatVendorApiRequest> operator()(const RawData& raw_data) const;
     private:
-        static Instance<vendor::MovementVendorApiRequest> parse_config_request(const service_api_MovementApiRequest& pb_request);
-        static Instance<vendor::MovementVendorApiRequest> parse_linear_movement_request(const service_api_MovementApiRequest& pb_request);
-        static Instance<vendor::MovementVendorApiRequest> parse_rotational_movement_request(const service_api_MovementApiRequest& pb_request);
-        static pico::AxisConfig parse_axis_config(const service_api_AxisConfig& pb_axis_config);
-        static pico::AxisConfig::DirectionsMapping parse_directions_mapping(const service_api_DirectionsMapping& pb_directions);
     };
 
-    inline Instance<vendor::MovementVendorApiRequest> ApiRequestParser::operator()(const RawData& raw_data) const {
+    inline Instance<vendor::ThermostatVendorApiRequest> ApiRequestParser::operator()(const RawData& raw_data) const {
         auto istream = pb_istream_from_buffer(
             (const pb_byte_t *)raw_data.data(),
             raw_data.size()
@@ -52,7 +41,7 @@ namespace ipc {
         }
     }
 
-    inline Instance<vendor::MovementVendorApiRequest> ApiRequestParser::parse_config_request(const service_api_MovementApiRequest& pb_request) {
+    inline Instance<vendor::ThermostatVendorApiRequest> ApiRequestParser::parse_config_request(const service_api_MovementApiRequest& pb_request) {
         const auto& pb_cfg_request = pb_request.request.config_request;
         if (!pb_cfg_request.has_axes_config) {
             throw std::invalid_argument("AxesControllerConfigApiRequest is missing axes configuration");
@@ -63,10 +52,10 @@ namespace ipc {
             {manager::Axis::Y, parse_axis_config(pb_axes_config.y_axis_cfg)},
             {manager::Axis::Z, parse_axis_config(pb_axes_config.z_axis_cfg)},
         };
-        return Instance<vendor::MovementVendorApiRequest>(new vendor::AxesControllerConfigApiRequest<pico::PicoAxesControllerConfig>(axes_config));
+        return Instance<vendor::ThermostatVendorApiRequest>(new vendor::AxesControllerConfigApiRequest<pico::PicoAxesControllerConfig>(axes_config));
     }
 
-    inline Instance<vendor::MovementVendorApiRequest> ApiRequestParser::parse_linear_movement_request(const service_api_MovementApiRequest& pb_request) {
+    inline Instance<vendor::ThermostatVendorApiRequest> ApiRequestParser::parse_linear_movement_request(const service_api_MovementApiRequest& pb_request) {
         const auto& pb_linear_request = pb_request.request.linear_movement_request;
         if (!pb_linear_request.has_target) {
             throw std::invalid_argument("LinearMovementRequest is missing target vector");
@@ -77,10 +66,10 @@ namespace ipc {
             static_cast<double>(pb_linear_request.target.z)
         );
         const auto speed = static_cast<double>(pb_linear_request.speed);
-        return Instance<vendor::MovementVendorApiRequest>(new vendor::LinearMovementRequest(target, speed));
+        return Instance<vendor::ThermostatVendorApiRequest>(new vendor::LinearMovementRequest(target, speed));
     }
 
-    inline Instance<vendor::MovementVendorApiRequest> ApiRequestParser::parse_rotational_movement_request(const service_api_MovementApiRequest& pb_request) {
+    inline Instance<vendor::ThermostatVendorApiRequest> ApiRequestParser::parse_rotational_movement_request(const service_api_MovementApiRequest& pb_request) {
         const auto& pb_rotation_request = pb_request.request.rotation_movement_request;
         if (!pb_rotation_request.has_target) {
             throw std::invalid_argument("RotationMovementRequest is missing target vector");
@@ -100,7 +89,7 @@ namespace ipc {
         );
         const auto speed = static_cast<double>(pb_rotation_request.speed);
         const auto angle = static_cast<double>(pb_rotation_request.angle);
-        return Instance<vendor::MovementVendorApiRequest>(new vendor::RotationMovementRequest(target, rotation_center, angle, speed));
+        return Instance<vendor::ThermostatVendorApiRequest>(new vendor::RotationMovementRequest(target, rotation_center, angle, speed));
     }
 
     inline pico::AxisConfig ApiRequestParser::parse_axis_config(const service_api_AxisConfig& pb_axis_config) {

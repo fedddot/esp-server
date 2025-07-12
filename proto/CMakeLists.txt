@@ -34,16 +34,9 @@ target_include_directories(api_request_parser INTERFACE ${CMAKE_CURRENT_LIST_DIR
 target_link_libraries(
 	api_request_parser
 	INTERFACE
-    axes_controller_config_request
-    axis_config
-    ipc_data
+    thermostat_api_request
     ipc_instance
-    linear_movement_request
-    movement_manager_data
     service_api
-    service_api_request
-    pico_axis_controller_config
-    rotation_movement_request
 	pb_decode
 	pb_common
 )
@@ -53,8 +46,7 @@ target_include_directories(api_response_serializer INTERFACE ${CMAKE_CURRENT_LIS
 target_link_libraries(
 	api_response_serializer
 	INTERFACE
-    ipc_data
-    service_api_response
+    thermostat_api_response
     service_api
 	pb_encode
 	pb_common
