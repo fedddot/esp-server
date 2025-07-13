@@ -24,11 +24,13 @@ def print_response(response: ThermostatApiResponse):
     }
     print(f"Status: {status_mapping.get(response.status, 'Unknown')}")
     print(f"Message: {response.message}")
+    print(f"Temperature: {response.current_temperature}")
 
 def print_request(request: ThermostatApiRequest):
     request_type_mapping = {
         RequestType.START: "Start",
-        RequestType.STOP: "Stop"
+        RequestType.STOP: "Stop",
+        RequestType.GET_TEMP: "Get Temperature",
     }
     print(f"Request Type: {request_type_mapping.get(request.request_type, 'Unknown')}")
     if request.set_temperature:
@@ -58,5 +60,14 @@ if __name__ == "__main__":
     print("Sending test request:")
     print_request(stop_request)
     response = run_request(service_uri, stop_request)
+    print("Received response:")
+    print_response(response)
+    
+    get_request = ThermostatApiRequest(
+        request_type=RequestType.GET_TEMP
+    )
+    print("Sending test request:")
+    print_request(get_request)
+    response = run_request(service_uri, get_request)
     print("Received response:")
     print_response(response)
