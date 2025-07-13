@@ -1,8 +1,10 @@
 #ifndef ESP_PT100_SENSOR_CONTROLLER_HPP
 #define ESP_PT100_SENSOR_CONTROLLER_HPP
 
-#include "driver/gpio.h"
-#include "hal/gpio_types.h"
+#include <stdexcept>
+
+#include "esp_adc/adc_oneshot.h"
+#include "hal/adc_types.h"
 
 #include "temperature_sensor_controller.hpp"
 
@@ -10,24 +12,41 @@ namespace esp {
 
     class Pt100SensorController: public manager::TemperatureSensorController {
     public:
-        Pt100SensorController(const gpio_num_t& gpio_pin): m_gpio_pin(gpio_pin) {
-            gpio_config_t io_conf = {};
-            io_conf.intr_type = GPIO_INTR_DISABLE;
-            io_conf.mode = GPIO_MODE_INPUT;
-            io_conf.pin_bit_mask = (1ULL << m_gpio_pin);
-            io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-            io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-            ESP_ERROR_CHECK(gpio_config(&io_conf));
+        Pt100SensorController(
+            const adc_oneshot_unit_init_cfg_t& unit_cfg,
+            const adc_channel_t& channel,
+            const adc_oneshot_chan_cfg_t& chan_cfg
+        ) {
+            adc_oneshot_unit_handle_t adc_handle;
+            if (ESP_OK != adc_oneshot_new_unit(&unit_cfg, &adc_handle)) {
+                throw std::runtime_error("Failed to create ADC oneshot unit");
+            }
+            if (ESP_OK != adc_oneshot_config_channel(adc_handle, channel, &chan_cfg)) {
+                adc_oneshot_del_unit(adc_handle);
+                throw std::runtime_error("Failed to config ADC chanel");
+            }
+            m_handle = adc_handle;
+            m_chan = channel;
         }
         Pt100SensorController(const Pt100SensorController&) = delete;
         Pt100SensorController& operator=(const Pt100SensorController&) = delete;
+        ~Pt100SensorController() noexcept override {
+            if (m_handle) {
+                adc_oneshot_del_unit(m_handle);
+                m_handle = nullptr;
+            }
+        }
 
         double read_temperature() const override {
-            // Placeholder for actual temperature reading logic
-            return 25.0; // Return a dummy temperature value
+            int read_result = 0;
+            if (ESP_OK != adc_oneshot_read(m_handle, m_chan, &read_result)) {
+                throw std::runtime_error("Failed to read ADC value");
+            }
+            return static_cast<double>(read_result);
         }
     private:
-        gpio_num_t m_gpio_pin;
+        adc_oneshot_unit_handle_t m_handle;
+        adc_channel_t m_chan;
     };
 }
 

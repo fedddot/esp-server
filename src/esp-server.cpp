@@ -3,12 +3,14 @@
 #include <string>
 #include <vector>
 
+#include "esp_adc/adc_oneshot.h"
 #include "esp_timer_scheduler.hpp"
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h" // Added for FreeRTOS timer support
 
 #include "driver/gpio.h"
 #include "freertos/task.h"
+#include "hal/adc_types.h"
 #include "hal/gpio_types.h"
 
 #include "api_request_parser.hpp"
@@ -169,7 +171,17 @@ inline void blink_loop() {
 
 inline ThermostatVendor::ThermostatManagerInstance create_thermostat_manager_instance() {
     const auto relay_controller = manager::Instance<RelayController>(new esp::GpioRelayController(RELAY_GPIO_PIN));
-    const auto temp_sensor_controller = manager::Instance<TemperatureSensorController>(new esp::Pt100SensorController(TEMP_SENSOR_GPIO_PIN));
+    const auto unit_cfg = adc_oneshot_unit_init_cfg_t {
+        .unit_id = ADC_UNIT_1,
+        .clk_src = ADC_RTC_CLK_SRC_DEFAULT,
+        .ulp_mode = ADC_ULP_MODE_DISABLE,
+    };
+    const auto channel = ADC_CHANNEL_0;
+    const auto chan_cfg = adc_oneshot_chan_cfg_t {
+        .atten = ADC_ATTEN_DB_0,
+        .bitwidth = ADC_BITWIDTH_12,
+    };
+    const auto temp_sensor_controller = manager::Instance<TemperatureSensorController>(new esp::Pt100SensorController(unit_cfg, channel, chan_cfg));
     const auto timer_scheduler = manager::Instance<TimerScheduler>(new esp::EspTimerScheduler());
     return ThermostatVendor::ThermostatManagerInstance(
         new ThermostatManager(
