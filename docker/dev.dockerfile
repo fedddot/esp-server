@@ -31,7 +31,7 @@ RUN git clone --branch=0.4.9 https://github.com/nanopb/nanopb.git nanopb
 ENV NANOPB_SRC_PATH=/usr/app/external/nanopb
 
 WORKDIR /usr/app/external
-RUN git clone -b dev/implement-termostat-manager https://github.com/fedddot/mcu_server.git mcu_server
+RUN git clone --branch=main https://github.com/fedddot/mcu_server.git mcu_server
 ENV MCU_SERVER_PATH=/usr/app/external/mcu_server
 
 ENV SHELL=/bin/bash
