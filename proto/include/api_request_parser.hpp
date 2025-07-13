@@ -34,11 +34,7 @@ namespace ipc {
         switch (decoded_request.request_type) {
         case service_api_RequestType_STOP:
             return Instance<vendor::ThermostatVendorApiRequest>(
-                new vendor::ThermostatVendorApiRequest(
-                    vendor::ThermostatVendorApiRequest::RequestType::STOP,
-                    std::nullopt,
-                    std::nullopt
-                )
+                new vendor::ThermostatVendorApiRequest(vendor::ThermostatVendorApiRequest::RequestType::STOP)
             );
         case service_api_RequestType_START:
             return Instance<vendor::ThermostatVendorApiRequest>(
@@ -47,6 +43,10 @@ namespace ipc {
                     decoded_request.set_temperature,
                     decoded_request.time_resolution_ms
                 )
+            );
+        case service_api_RequestType_GET_TEMP:
+            return Instance<vendor::ThermostatVendorApiRequest>(
+                new vendor::ThermostatVendorApiRequest(vendor::ThermostatVendorApiRequest::RequestType::GET_TEMP)
             );
         default:
             throw std::runtime_error("unsupported request type in ThermostatApiRequest");

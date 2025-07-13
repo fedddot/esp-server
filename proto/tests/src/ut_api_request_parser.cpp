@@ -37,6 +37,7 @@ inline RawData serialize_thermostat_request(const ThermostatVendorApiRequest& re
 	const auto request_type_mapping = std::map<ThermostatVendorApiRequest::RequestType, service_api_RequestType> {
 		{ ThermostatVendorApiRequest::RequestType::START, service_api_RequestType_START },
 		{ ThermostatVendorApiRequest::RequestType::STOP, service_api_RequestType_STOP },
+		{ ThermostatVendorApiRequest::RequestType::GET_TEMP, service_api_RequestType_GET_TEMP }
 	};
 	auto casted_temp = float(0.0);
 	if (request.temperature()) {
