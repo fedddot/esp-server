@@ -15,6 +15,7 @@ message ThermostatApiRequest {
 enum RequestType {
 	START = 0;
 	STOP = 1;
+	GET_TEMP = 2;
 }
 
 message ThermostatApiResponse {
