@@ -11,6 +11,7 @@
 #include "driver/gpio.h"
 #include "freertos/task.h"
 #include "hal/adc_types.h"
+#include "soc/adc_channel.h"
 #include "hal/gpio_types.h"
 
 #include "api_request_parser.hpp"
@@ -176,7 +177,7 @@ inline ThermostatVendor::ThermostatManagerInstance create_thermostat_manager_ins
         .clk_src = ADC_RTC_CLK_SRC_DEFAULT,
         .ulp_mode = ADC_ULP_MODE_DISABLE,
     };
-    const auto channel = ADC_CHANNEL_0;
+    const auto channel = static_cast<adc_channel_t>(ADC1_GPIO4_CHANNEL);
     const auto chan_cfg = adc_oneshot_chan_cfg_t {
         .atten = ADC_ATTEN_DB_0,
         .bitwidth = ADC_BITWIDTH_12,

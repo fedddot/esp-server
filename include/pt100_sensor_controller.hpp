@@ -21,10 +21,6 @@ namespace esp {
             if (ESP_OK != adc_oneshot_new_unit(&unit_cfg, &adc_handle)) {
                 throw std::runtime_error("Failed to create ADC oneshot unit");
             }
-            if (ESP_OK != adc_oneshot_config_channel(adc_handle, channel, &chan_cfg)) {
-                adc_oneshot_del_unit(adc_handle);
-                throw std::runtime_error("Failed to config ADC chanel");
-            }
             m_handle = adc_handle;
             m_chan = channel;
         }
