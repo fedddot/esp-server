@@ -33,6 +33,7 @@ namespace ipc {
         };
         const auto pb_status = status_mapping.at(response.result());
         const auto pb_msg = response.message() ? response.message().value() : std::string("");
+        const auto pb_temperature = response.temperature() ? static_cast<float>(response.temperature().value()) : 0.0f;
         const auto pb_response = service_api_ThermostatApiResponse {
             .status = pb_status,
             .message = pb_callback_t {
@@ -41,6 +42,7 @@ namespace ipc {
                 },
                 .arg = const_cast<std::string *>(&pb_msg),
             },
+            .current_temperature = pb_temperature
         };
 
         enum: int { BUFF_SIZE = 512UL };

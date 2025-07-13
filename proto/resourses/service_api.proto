@@ -21,6 +21,7 @@ enum RequestType {
 message ThermostatApiResponse {
 	StatusCode status = 1;
 	string message = 2;
+	float current_temperature = 3;
 }
 
 enum StatusCode {
