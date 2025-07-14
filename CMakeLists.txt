@@ -14,7 +14,7 @@ include($ENV{IDF_PATH}/tools/cmake/idf.cmake)
 idf_build_set_property(MINIMAL_BUILD ON)
 idf_build_process(
     ${TARGET}
-    COMPONENTS freertos esp-tls nvs_flash esp_netif esp_http_server esp_wifi esp_eth
+    COMPONENTS freertos esp-tls nvs_flash esp_netif esp_http_server esp_wifi esp_eth esp_adc
     SDKCONFIG ${CMAKE_CURRENT_LIST_DIR}/sdkconfig
     BUILD_DIR ${CMAKE_BINARY_DIR}
 )
@@ -42,15 +42,28 @@ target_link_libraries(
     ${CMAKE_PROJECT_NAME}.elf
     PRIVATE
     idf::esp_driver_gpio
-    http_server
+
+    api_request_parser
     api_request_reader_builder
+    api_response_serializer
     api_response_writer_builder
     host
     http_server
     ipc_instance
+    manager_instance
+    relay_controller
+    temperature_sensor_controller
+    thermostat_api_request
+    thermostat_api_response
+    thermostat_manager
+    thermostat_vendor
+    timer_scheduler
     vendor
     vendor_instance
     wifi_station_guard
+    esp_timer_scheduler
+    pt100_sensor_controller
+    gpio_relay_controller
 )
 idf_build_executable(${CMAKE_PROJECT_NAME}.elf)
 target_compile_definitions(
@@ -60,6 +73,8 @@ target_compile_definitions(
     NETWORK_PASSWORD=\"${NETWORK_PASSWORD}\"
     SERVICE_PORT=${SERVICE_PORT}
     SERVICE_ROUTE=\"${SERVICE_ROUTE}\"
+    RELAY_GPIO_PIN=GPIO_NUM_5
+    TEMP_SENSOR_GPIO_PIN=GPIO_NUM_4
 )
 
 add_library(wifi_access_point_guard INTERFACE)
@@ -92,4 +107,33 @@ target_link_libraries(
     idf::esp_http_server
 )
 
+add_library(esp_timer_scheduler INTERFACE)
+target_include_directories(esp_timer_scheduler INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    esp_timer_scheduler
+    INTERFACE
+    idf::freertos
+    idf::esp_timer
+    timer_scheduler
+)
+
+add_library(pt100_sensor_controller INTERFACE)
+target_include_directories(pt100_sensor_controller INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(
+    pt100_sensor_controller
+    INTERFACE
+    idf::esp_driver_gpio
+    idf::esp_adc
+)
+
+add_library(gpio_relay_controller INTERFACE)
+target_include_directories(gpio_relay_controller INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(
+    gpio_relay_controller
+    INTERFACE
+    idf::esp_driver_gpio
+    relay_controller
+)
+
+add_subdirectory(proto)
 add_subdirectory($ENV{MCU_SERVER_PATH} ${CMAKE_BINARY_DIR}/_deps/mcu_server-build)

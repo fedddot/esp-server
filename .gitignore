@@ -16,4 +16,9 @@ build
 !*.yml
 !*.py
 !*.sh
+!*.proto
 !.clangd
+
+automation/venv/*
+!automation/venv/pyvenv.cfg
+!automation/requirements.txt

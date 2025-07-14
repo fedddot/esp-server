@@ -1,21 +1,40 @@
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "esp_adc/adc_oneshot.h"
+#include "esp_timer_scheduler.hpp"
 #include "freertos/FreeRTOS.h"
+#include "freertos/timers.h" // Added for FreeRTOS timer support
 
 #include "driver/gpio.h"
 #include "freertos/task.h"
+#include "hal/adc_types.h"
+#include "soc/adc_channel.h"
 #include "hal/gpio_types.h"
 
+#include "api_request_parser.hpp"
 #include "api_request_reader_builder.hpp"
+#include "api_response_serializer.hpp"
 #include "api_response_writer_builder.hpp"
 #include "host.hpp"
 #include "http_server.hpp"
 #include "ipc_instance.hpp"
+#include "manager_instance.hpp"
+#include "relay_controller.hpp"
+#include "temperature_sensor_controller.hpp"
+#include "thermostat_api_request.hpp"
+#include "thermostat_api_response.hpp"
+#include "thermostat_manager.hpp"
+#include "thermostat_vendor.hpp"
+#include "timer_scheduler.hpp"
 #include "vendor.hpp"
 #include "vendor_instance.hpp"
 #include "wifi_station_guard.hpp"
+
+#include "gpio_relay_controller.hpp"
+#include "pt100_sensor_controller.hpp"
 
 #ifndef NETWORK_SSID
 #  error "NETWORK_SSID must be defined"
@@ -33,15 +52,23 @@
 #  error "SERVICE_ROUTE must be defined"
 #endif
 
+#ifndef RELAY_GPIO_PIN
+#  error "RELAY_GPIO_PIN must be defined"
+#endif
+
+#ifndef TEMP_SENSOR_GPIO_PIN
+#  error "TEMP_SENSOR_GPIO_PIN must be defined"
+#endif
+
 using namespace mcu_server;
 using namespace host;
 using namespace ipc;
 using namespace vendor;
+using namespace manager;
 
-using AxesConfig = std::string;
 using RawData = std::vector<char>;
-using ApiRequest = std::string;
-using ApiResponse = std::string;
+using ApiRequest = ThermostatVendorApiRequest;
+using ApiResponse = ThermostatVendorApiResponse;
 
 class RawDataReader : public IpcDataReader<RawData> {
 public:
@@ -76,46 +103,34 @@ private:
     RawData *m_raw_data;
 };
 
-class SimpleVendor: public Vendor<ApiRequest, ApiResponse> {
-public:
-    SimpleVendor() = default;
-    SimpleVendor(const SimpleVendor&) = delete;
-    SimpleVendor& operator=(const SimpleVendor&) = delete;
-    ApiResponse run_api_request(const ApiRequest& request) override {
-        const auto msg = std::string("received request: ") + request;
-        return ApiResponse(msg.begin(), msg.end());
-    }
-};
-
 static void blink_loop();
+static ThermostatVendor::ThermostatManagerInstance create_thermostat_manager_instance();
 
 extern "C" {
     void app_main(void) {
         auto data_buffer = RawData();
         ApiRequestReaderBuilder<ApiRequest, RawData> reader_builder;
         reader_builder
-            .set_api_request_parser(
-                [](const RawData& raw_data) -> ipc::Instance<ApiRequest> {
-                    return ipc::Instance<ApiRequest>(new ApiRequest(raw_data.begin(), raw_data.end()));
-                }
-            )
+            .set_api_request_parser(ApiRequestParser())
             .set_raw_data_reader(ipc::Instance<IpcDataReader<RawData>>(new RawDataReader(&data_buffer)));
         const auto api_reader = reader_builder.build();
         ApiResponseWriterBuilder<ApiResponse, RawData> writer_builder;
         writer_builder
             .set_raw_data_writer(ipc::Instance<IpcDataWriter<RawData>>(new RawDataWriter(&data_buffer)))
-            .set_api_response_serializer(
-                [](const ApiResponse& response) {
-                    return RawData(response.begin(), response.end());
-                }
-            );
+            .set_api_response_serializer(ApiResponseSerializer());
         const auto api_writer = writer_builder.build();
+
+        const auto thermostat_manager = create_thermostat_manager_instance();
+        const auto thermostat_vendor = vendor::Instance<Vendor<ApiRequest, ApiResponse>>(new ThermostatVendor(thermostat_manager));
         Host<ApiRequest, ApiResponse> host(
             api_reader,
             api_writer,
-            vendor::Instance<Vendor<ApiRequest, ApiResponse>>(new SimpleVendor()),
-            [](const auto& e) {
-                return ApiResponse(std::string("error in host: ") + std::string(e.what()));
+            thermostat_vendor,
+            [](const auto& e) -> ApiResponse {
+                return ApiResponse(
+                    ApiResponse::Result::FAILURE,
+                    "unexpected error: " + std::string(e.what())
+                );
             }
         );
 
@@ -153,4 +168,27 @@ inline void blink_loop() {
         gpio_set_level(GPIO_NUM_15, false);
         vTaskDelay(pdMS_TO_TICKS(led_off_time));
     }
+}
+
+inline ThermostatVendor::ThermostatManagerInstance create_thermostat_manager_instance() {
+    const auto relay_controller = manager::Instance<RelayController>(new esp::GpioRelayController(RELAY_GPIO_PIN));
+    const auto unit_cfg = adc_oneshot_unit_init_cfg_t {
+        .unit_id = ADC_UNIT_1,
+        .clk_src = ADC_RTC_CLK_SRC_DEFAULT,
+        .ulp_mode = ADC_ULP_MODE_DISABLE,
+    };
+    const auto channel = static_cast<adc_channel_t>(ADC1_GPIO4_CHANNEL);
+    const auto chan_cfg = adc_oneshot_chan_cfg_t {
+        .atten = ADC_ATTEN_DB_0,
+        .bitwidth = ADC_BITWIDTH_12,
+    };
+    const auto temp_sensor_controller = manager::Instance<TemperatureSensorController>(new esp::Pt100SensorController(unit_cfg, channel, chan_cfg));
+    const auto timer_scheduler = manager::Instance<TimerScheduler>(new esp::EspTimerScheduler());
+    return ThermostatVendor::ThermostatManagerInstance(
+        new ThermostatManager(
+            relay_controller,
+            temp_sensor_controller,
+            timer_scheduler
+        )
+    );
 }

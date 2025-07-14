@@ -17,11 +17,14 @@
 				"josetr.cmake-language-support-vscode",
 				"zxh404.vscode-proto3",
 				"Postman.postman-for-vscode",
-				"GitHub.vscode-github-actions"
-			]
+				"GitHub.vscode-github-actions",
+				"donjayamanne.python-extension-pack"
+			],
+			"settings": {
+				"workbench.colorTheme": "Monokai"
+			}
 		}
 	},
 	"workspaceMount": "source=${localWorkspaceFolder},target=/project,type=bind",
-	"workspaceFolder": "/project",
-	"remoteUser": "developer"
+	"workspaceFolder": "/project"
 }
