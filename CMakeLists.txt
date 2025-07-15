@@ -14,7 +14,7 @@ include($ENV{IDF_PATH}/tools/cmake/idf.cmake)
 idf_build_set_property(MINIMAL_BUILD ON)
 idf_build_process(
     ${TARGET}
-    COMPONENTS freertos esp-tls nvs_flash esp_netif esp_http_server esp_wifi esp_eth esp_adc
+    COMPONENTS esp_netif esp_http_server esp_wifi esp_eth esp_adc
     SDKCONFIG ${CMAKE_CURRENT_LIST_DIR}/sdkconfig
     BUILD_DIR ${CMAKE_BINARY_DIR}
 )
@@ -82,7 +82,6 @@ target_include_directories(wifi_access_point_guard INTERFACE ${CMAKE_CURRENT_LIS
 target_link_libraries(
     wifi_access_point_guard
     INTERFACE
-    idf::nvs_flash
     idf::esp_netif
     idf::esp_wifi
 )
@@ -92,7 +91,6 @@ target_include_directories(wifi_station_guard INTERFACE ${CMAKE_CURRENT_LIST_DIR
 target_link_libraries(
     wifi_station_guard
     INTERFACE
-    idf::nvs_flash
     idf::esp_netif
     idf::esp_wifi
 )
