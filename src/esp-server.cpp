@@ -1,13 +1,13 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <sys/unistd.h>
 #include <vector>
 
 #include "esp_adc/adc_oneshot.h"
 #include "esp_timer_scheduler.hpp"
 
 #include "driver/gpio.h"
-#include "freertos/task.h"
 #include "hal/adc_types.h"
 #include "soc/adc_channel.h"
 #include "hal/gpio_types.h"
@@ -162,9 +162,9 @@ inline void blink_loop() {
     int led_off_time = 1900;
     while (true) {
         gpio_set_level(GPIO_NUM_15, true);
-        vTaskDelay(pdMS_TO_TICKS(led_on_time));
+        sleep(1);
         gpio_set_level(GPIO_NUM_15, false);
-        vTaskDelay(pdMS_TO_TICKS(led_off_time));
+        sleep(1);
     }
 }
 
