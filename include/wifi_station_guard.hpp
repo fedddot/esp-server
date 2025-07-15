@@ -6,7 +6,6 @@
 #include <cstring>
 #include "esp_wifi.h"
 #include "esp_event.h"
-#include "nvs_flash.h"
 
 namespace mcu_server {
     class WifiStationGuard {
@@ -43,7 +42,6 @@ namespace mcu_server {
             esp_wifi_stop();
             esp_wifi_deinit();
             esp_event_loop_delete_default();
-            nvs_flash_deinit();
         }
     private:
         static std::size_t s_reference_count;
