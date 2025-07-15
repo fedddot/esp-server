@@ -5,8 +5,6 @@
 
 #include "esp_adc/adc_oneshot.h"
 #include "esp_timer_scheduler.hpp"
-#include "freertos/FreeRTOS.h"
-#include "freertos/timers.h" // Added for FreeRTOS timer support
 
 #include "driver/gpio.h"
 #include "freertos/task.h"
